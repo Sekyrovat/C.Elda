@@ -8,48 +8,119 @@ import sys
 from argparse import ArgumentParser
 from sly import Lexer, Parser
 
+'''
+ Clase de Lexer utilizado para el comentario inicial que debe dar el alumno.
+ Contiene los tokes de comentario inicial y matricula, ya que de acuerdo a las especificaciones 
+ dadas esto es un requerimieto.
+'''
 class ComentarioInicialLexer(Lexer):
 	tokens = {COMMENTARIO_INICIAL, MATRICULA}
 	COMMENTARIO_INICIAL = r'//'
+	'''
+		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
+		Seguida de 8 numeros en el rango de 0 va 9.
+	'''
+	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
 	MATRICULA = r'[AaLl]\d{8}' # \d expande a [0-9]
 
+'''
+	Cuando se termina de procesar el comentario Inicial se procede a utilizar este lexer en el resto
+	del programa.
+'''
 class CEldaLexer(Lexer):
+	# Aqui se dan todas las tokens que seran utilizadas.
 	tokens = {INCREMENT, DECREMENT, TAB, SPACE, NEWLINE, BITWISE_SHIFT, COMPARADOR, EQ_NEQ, AND, OR, ASSIGNMENT, MATRICULA, BOID, BOARRID, BOMATID, FLID, FLARRID, FLMATID, INID, INARRID, INMATID, CHID, CHARRID, CHMATID, STID, STARRID, STMATID, FIID, PIID, TEXT, NUMERO, IDFUNCION, COMMENT}
+	# Aqui declaramos las literales que se usaran.
 	literals = {',', ';', '{', '}', '(', ')', '+', '-', '*', '/', '!', '~', '?', ':', '[', ']', '%', '^', '&', '|'}
 	# ignore = ' \t'
 
 	# Tokens
+	'''
+		Aqui declaramos todos los tokens que usara el compilador.
+	'''
+	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
 	TAB = r'\t'
 	SPACE = r' '
+	'''
+		Los NEWLINES tambien se consideraran para los softerrors ya que mas 80 caracteres por linea 
+		se consideran mala practica, ademas de que se requieren por estandar junto con el uso de 
+		whiles, fors, if, etcetera. Seran parte de lo graficado.
+	'''
 	NEWLINE = r'\n'
+
+	'''
+		Tokens para incremento y decremento de variables. Ejem i++, --j
+		Se graficara el uso optimo de este tipo de incremento y decremento.
+		Considerando al mas optimos como ++i o --j.
+	'''
 	INCREMENT = r'\+\+'
 	DECREMENT = r'--'
+	
+	# Expresione regular para la verificacion de igualdad o diferncia.
 	EQ_NEQ = r'(=|!)='
+
+	'''
+		Expresion regular que maneja los multiples tipos de asignacion.
+		Se maneja la asignacion con suma(+=), resta(-=), multiplicacion(*=), 
+		division(/=), modulo(%=), bitwise left shift(<<=), bitwise right shift(>>=),
+		bitwise AND(&=), bitwise OR(|=), bitwise not(^=) y la asignacion sencilla (=) 
+	'''
 	ASSIGNMENT = r'(\+|-|\*|/|%|&|\^|\||<<|>>)?='
+
+	# Expresion regular para realizar un shift de bits.
 	BITWISE_SHIFT = r'<<|>>'
+
+	# Expresiones regulares para las comparaciones.
 	COMPARADOR = r'(<|>)=?'
 	AND = r'&&'
 	OR = r'\|\|'
-	BOMATID = r'bMat[A-Z]\w*' # \w expande a [a-zA-Z0-9_]
+
+	# Seccion con las expresiones regulares que se usaran para procesar los IDs.
+	# Se debe hacer notar que \w expande [a-zA-Z0-9_]
+	BOMATID = r'bMat[A-Z]\w*'
 	BOARRID = r'bArr[A-Z]\w*'
 	BOID = r'b[A-Z]\w*'
+	
 	FLMATID = r'fMat[A-Z]\w*'
 	FLARRID = r'fArr[A-Z]\w*'
 	FLID = r'f[A-Z]\w*'
+	
 	INMATID = r'iMat[A-Z]\w*'
 	INARRID = r'iArr[A-Z]\w*'
 	INID = r'i[A-Z]\w*'
+	
 	CHMATID = r'cMat[A-Z]\w*'
 	CHARRID = r'cArr[A-Z]\w*'
 	CHID = r'c[A-Z]\w*'
+	
 	STMATID = r'sMat[A-Z]\w*'
 	STARRID = r'sArr[A-Z]\w*'
 	STID = r's[A-Z]\w*'
+	
+
+	#####################################################################
+	############# Falta modificar las expresiones para que  #############
+	############# cumplan con los diagramas, ya que carecen #############
+	############# de un ID y el tipo de dato que almacenan  #############
+	#####################################################################
+	# ID de pilas y de Filas
 	FIID = r'stk[A-Z]\w*'
 	PIID = r'q[A-Z]\w*'
+	#####################################################################
+	#####################################################################
+	#####################################################################
+	#####################################################################
+
 	#TEXT
 	#NUMERO
+
+	'''
+		Expresion regular para procesar el ID de la funcion.
+		En la declaracion de la funcion primero va incluido el tipo de retorno
+		de dicha funcion.
+	'''
 	IDFUNCION = r'[a-zA-Z]\w*'
+	
 	# ID = r'[a-zA-Z]\w*'
 	# CTE_F = r'\d*\.\d+'
 	# CTE_I = r'\d+'
@@ -65,6 +136,11 @@ class CEldaLexer(Lexer):
 	# COMPARADOR = r'<>?|>'
 
 	# Ignored pattern
+	'''
+		Seccion de expresiones regulares que se usaran para ignorar comentarios.
+		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
+		del output grafico. Ya que seran errores de tipo soft.
+	'''
 	ignore_comments = r'//.*'
 	ignore_multiline_commets = r'/\*(.*|\n)\*/'
 
@@ -72,6 +148,7 @@ class CEldaLexer(Lexer):
 	# def ignore_newline(self, t):
 	# 	self.lineno += t.value.count('\n')
 
+	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
@@ -209,6 +286,9 @@ class CEldaLexer(Lexer):
 # 	def empty(self, p):
 # 		pass
 
+'''
+	Temporalmente solo esta con el procesamiento de los argumentos que se le pasaran en la CLI.
+'''
 def main():
 	argParser = ArgumentParser(description="Compile a C.Elda program")
 	argParser.add_argument('-V', '--version', action="store_true", help='display version information and exit')
@@ -222,18 +302,16 @@ def main():
 
 
 if __name__ == '__main__':
-	main()
-	# lexer = CEldaLexer()
-	# # parser = CEldaParser()
-	# if len(sys.argv) == 1:
-	# 	while True:
-	# 		try:
-	# 			text = input('C.Elda > ')
-	# 		except EOFError:
-	# 			break
-	# 		if text == "exit":
-	# 			break
-	# 		if text:
-	# 			for token in lexer.tokenize(text):
-	# 				print('type=%r, value=%r' % (token.type, token.value))
-	# else:
+	# main()
+	lexer = CEldaLexer()
+	# parser = CEldaParser()
+	while True:
+		try:
+			text = input('C.Elda > ')
+		except EOFError:
+			break
+		if text == "exit":
+			break
+		if text:
+			for token in lexer.tokenize(text):
+				print('type=%r, value=%r' % (token.type, token.value))
