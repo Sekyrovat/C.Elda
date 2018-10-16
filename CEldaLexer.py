@@ -1,42 +1,136 @@
 #!/usr/bin/python
 
-# C.Elda.py
+# CEldaLexer.py
 # Sergio López Madriz A01064725
 # Héctor Hernández Morales A00816446
 
 import sys
-from argparse import ArgumentParser
-from sly import Lexer, Parser
+from sly import Lexer
 
 '''
  Clase de Lexer utilizado para el comentario inicial que debe dar el alumno.
- Contiene los tokes de comentario inicial y matricula, ya que de acuerdo a las especificaciones 
+ Contiene los tokens de comentario inicial y matricula, ya que de acuerdo a las especificaciones --- Hice muchas cosas, tienes que rehacer este comentario, perdon XD
  dadas esto es un requerimieto.
 '''
 class ComentarioInicialLexer(Lexer):
-	tokens = {COMMENTARIO_INICIAL, MATRICULA}
-	COMMENTARIO_INICIAL = r'//'
+
+	tokens = {COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE}
+
+	COMENTARIO_SIMPLE = r'//'
+	INICIO_COMENTARIO_BLOQUE = r'/\*'
+
+	def COMENTARIO_SIMPLE(self, t):
+		self.begin(ComentarioInicialSimpleLexer)
+		return t
+
+	def INICIO_COMENTARIO_BLOQUE(self, t):
+		self.begin(ComentarioInicialBloqueLexer)
+		return t
+
+	def error(self, t):
+		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
+		self.index += 1
+
+class ComentarioInicialSimpleLexer(Lexer):
+
+	tokens = {COMENTARIO_SIMPLE, CONTENIDO_COMENTARIO, MATRICULA, NEWLINE}
+
+	COMENTARIO_SIMPLE = r'//'
+	'''
+		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
+		Seguida de 8 numeros en el rango de 0 va 9.
+	'''
+	NEWLINE = r'\n'
+	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
+	MATRICULA = r'\s.*\b[AaLl]\d{8}\b.*' # \d expande a [0-9]
+	CONTENIDO_COMENTARIO = r'\s.*'
+
+	def NEWLINE(self, t):
+		self.lineno += 1
+		return t
+
+	def MATRICULA(self, t):
+		self.begin(CEldaLexer)
+		return t
+
+	def error(self, t):
+		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
+		self.index += 1
+
+class ComentarioInicialBloqueLexer(Lexer):
+
+	tokens = {INICIO_COMENTARIO_BLOQUE, FIN_COMENTARIO_BLOQUE, CONTENIDO_COMENTARIO, MATRICULA}
+
+	ignore_newline = r'\n'
+
+	INICIO_COMENTARIO_BLOQUE = r'/\*'
+	FIN_COMENTARIO_BLOQUE = r'\*/'
 	'''
 		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
 		Seguida de 8 numeros en el rango de 0 va 9.
 	'''
 	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
-	MATRICULA = r'[AaLl]\d{8}' # \d expande a [0-9]
+	MATRICULA = r'(.*)\b[AaLl]\d{8}\b(?:(?!\*/).)*' # \d expande a [0-9]
+	CONTENIDO_COMENTARIO = r'(?:(?!\*/).)+'
+
+	def ignore_newline(self, t):
+		self.lineno += 1
+
+	def FIN_COMENTARIO_BLOQUE(self, t):
+		self.begin(CEldaLexer)
+		return t
+
+	def error(self, t):
+		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
+		self.index += 1
+
+class ComentarioBloqueLexer(Lexer):
+
+	tokens = {}
+	
+	ignore_newline = r'\n'
+	ignore_fin_comentario_bloque = r'\*/'
+	'''
+		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
+		Seguida de 8 numeros en el rango de 0 va 9.
+	'''
+	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
+	ignore_contenido_comentario = r'(?:(?!\*/).)+'
+
+	def ignore_newline(self, t):
+		self.lineno += 1
+
+	def ignore_fin_comentario_bloque(self, t):
+		self.pop_state()
+
+	def error(self, t):
+		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
+		self.index += 1
 
 '''
 	Cuando se termina de procesar el comentario Inicial se procede a utilizar este lexer en el resto
 	del programa.
 '''
 class CEldaLexer(Lexer):
+
+	def __init__(self):
+		self.nesting_level = 0
+		self.lineno = 1
+		self.begin(ComentarioInicialLexer)
+
 	# Aqui se dan todas las tokens que seran utilizadas.
 	tokens = {INCREMENT, DECREMENT, TAB, SPACE, NEWLINE, BITWISE_SHIFT, COMPARADOR, EQ_NEQ, AND, OR, ASSIGNMENT, MATRICULA, BOID, BOARRID, BOMATID, FLID, FLARRID, FLMATID, INID, INARRID, INMATID, CHID, CHARRID, CHMATID, STID, STARRID, STMATID, FIID, PIID, TEXT, NUMERO, IDFUNCION, COMMENT}
 	# Aqui declaramos las literales que se usaran.
 	literals = {',', ';', '{', '}', '(', ')', '+', '-', '*', '/', '!', '~', '?', ':', '[', ']', '%', '^', '&', '|'}
 	# ignore = ' \t'
 
+	# Fuerza que haya algun caracter de espacio antes del cuerpo del comentario ---Hector, hazlo decente XD
+	ignore_comentario_simple = r'//.*'
+	ignore_comentario_bloque = r'/\*'
+
 	# Tokens
 	'''
-		Aqui declaramos todos los tokens que usara el compilador.
+		Aqui declaramos todos los tokens que usara el compilador. ---Las expresiones regulares de los tokens
 	'''
 	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
 	TAB = r'\t'
@@ -141,177 +235,36 @@ class CEldaLexer(Lexer):
 		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
 		del output grafico. Ya que seran errores de tipo soft.
 	'''
-	ignore_comments = r'//.*'
-	ignore_multiline_commets = r'/\*(.*|\n)\*/'
 
 	# Extra action for newlines
-	# def ignore_newline(self, t):
-	# 	self.lineno += t.value.count('\n')
+	def ignore_comentario_bloque(self, t):
+		self.push_state(ComentarioBloqueLexer)
+
+	def NEWLINE(self, t):
+		self.lineno += 1
+		return t
 
 	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
 
-# class CEldaParser(Parser):
-# 	debugfile = 'parser.out'
-# 	tokens = LittleDuck2018Lexer.tokens
-
-# 	precedence = (
-# 		('left', "+", "-"),
-# 		('left', TIMES_DIVIDE),
-# 		('right', UMINUS),            # Unary minus operator
-# 	)
-
-# 	def __init__(self):
-# 		pass
-
-# 	@_('PROGRAM ID ";" programa2 bloque')
-# 	def programa(self, p):
-# 		print("Success!")
-# 		return 0
-
-# 	@_('vars',
-# 	   'empty')
-# 	def programa2(self, p):
-# 		pass
-
-# 	@_('VAR vars2')
-# 	def vars(self, p):
-# 		pass
-
-# 	@_('ids ":" tipo ";" vars2',
-# 	   'empty')
-# 	def vars2(self, p):
-# 		pass
-
-# 	@_('ID ids2')
-# 	def ids(self, p):
-# 		pass
-
-# 	@_('"," ID ids2',
-# 	   'empty')
-# 	def ids2(self, p):
-# 		pass
-
-# 	@_('INT',
-# 	   'FLOAT')
-# 	def tipo(self, p):
-# 		pass
-
-# 	@_('"{" estatutos "}"')
-# 	def bloque(self, p):
-# 		pass
-
-# 	@_('estatuto estatutos',
-# 	   'empty')
-# 	def estatutos(self, p):
-# 		pass
-
-# 	@_('asignacion',
-# 	   'condicion',
-# 	   'escritura')
-# 	def estatuto(self, p):
-# 		pass
-
-# 	@_('ID "=" expresion ";"')
-# 	def asignacion(self, p):
-# 		pass
-
-# 	@_('exp expresion2')
-# 	def expresion(self, p):
-# 		pass
-
-# 	@_('COMPARATOR exp',
-# 	   'empty')
-# 	def expresion2(self, p):
-# 		pass
-
-# 	@_('termino exp2')
-# 	def exp(self, p):
-# 		pass
-
-# 	@_('"+" termino exp2',
-# 	   '"-" termino exp2',
-# 	   'empty')
-# 	def exp2(self, p):
-# 		pass
-
-# 	@_('factor termino2')
-# 	def termino(self, p):
-# 		pass
-
-# 	@_('TIMES_DIVIDE factor termino2',
-# 	   'empty')
-# 	def termino2(self, p):
-# 		pass
-
-# 	@_('"(" expresion ")"',
-# 	   '"+" var_cte %prec UMINUS',
-# 	   '"-" var_cte %prec UMINUS',
-# 	   'var_cte')
-# 	def factor(self, p):
-# 		pass
-
-# 	@_('ID',
-# 	   'CTE_I',
-# 	   'CTE_F')
-# 	def var_cte(self, p):
-# 		pass
-
-# 	@_('IF "(" expresion ")" bloque condicion2 ";"')
-# 	def condicion(self, p):
-# 		pass
-
-# 	@_('ELSE bloque',
-# 	   'empty')
-# 	def condicion2(self, p):
-# 		pass
-
-# 	@_('PRINT "(" escritura2 ")" ";"')
-# 	def escritura(self, p):
-# 		pass
-
-# 	@_('expresion escritura3',
-# 	   'CTE_STRING escritura3')
-# 	def escritura2(self, p):
-# 		pass
-
-# 	@_('"," escritura2',
-# 	   'empty')
-# 	def escritura3(self, p):
-# 		pass
-
-# 	@_('')
-# 	def empty(self, p):
-# 		pass
-
-'''
-	Temporalmente solo esta con el procesamiento de los argumentos que se le pasaran en la CLI.
-'''
-def main():
-	argParser = ArgumentParser(description="Compile a C.Elda program")
-	argParser.add_argument('-V', '--version', action="store_true", help='display version information and exit')
-	argParser.add_argument('-i', '--input', help='Name/Path of the input file')
-	argParser.add_argument('-I', '--input-directory', '--files-from', help='Base path for input files')
-	argParser.add_argument('-o', '--output', help='Name/Path of the output file (default: C.Elda', default='./C.Elda')
-	argParser.add_argument('-O', '--output-directory', help='Base path for the output file (default: ./', default='./')
-	argParser.add_argument('-d', '--directory', '--cd', help='set working directory', default='./')
-	argParser.add_argument('-t', '--tokenize', action="store_true", help='only tokenize the input')
-	argParser.parse_args()
-
-
 if __name__ == '__main__':
-	# main()
-	lexer = CEldaLexer()
-	# parser = CEldaParser()
-	while True:
-		try:
-			text = input('C.Elda > ')
-		except EOFError:
-			break
-		if text == "exit":
-			break
-		if text:
-			for token in lexer.tokenize(text):
-				print('type=%r, value=%r' % (token.type, token.value))
+	lexer = ComentarioInicialLexer()
+	if len(sys.argv) > 1:
+		with open(sys.argv[1], "r") as inputFile:
+			data = inputFile.read()
+		inputFile.close()
+		for token in lexer.tokenize(data):
+			print(token)
+	else:
+		while True:
+			try:
+				text = input('C.Elda > ')
+			except EOFError:
+				break
+			if text == "exit":
+				break
+			if text:
+				for token in lexer.tokenize(text):
+					print(token)
