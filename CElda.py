@@ -4,6 +4,8 @@
 # Sergio López Madriz A01064725
 # Héctor Hernández Morales A00816446
 
+
+# Importamos los archivos necesarios para el procesamiento.
 import sys
 from argparse import ArgumentParser
 from CEldaLexer import CEldaLexer
@@ -287,6 +289,9 @@ from CEldaLexer import CEldaLexer
 # 		pass
 
 '''
+	Funcion main.
+	Esta sera la forma de invocar al compilador.
+	Se llamara desde consola y dependiendo del argumento que se le pase realizara la funcion indicada
 	Temporalmente solo esta con el procesamiento de los argumentos que se le pasaran en la CLI.
 '''
 def main():
@@ -302,16 +307,34 @@ def main():
 
 
 if __name__ == '__main__':
+	# Llamamos a la funcion main
 	# main()
+	
+	# Una vez que tenemos la informacion generamos una variable que funcionara como lexer.
 	lexer = CEldaLexer()
+	
+	# Generamos una variable que funcionara como parser.
 	# parser = CEldaParser()
+
+	# Debemos ver que argumento se nos otorga.
 	if len(sys.argv) > 1:
+		# En este caso abrimos el archivo que se paso como argumento.
 		with open(sys.argv[1], "r") as inputFile:
+			# Leemos el archivo y asignamos los contenidos a una variable.
 			data = inputFile.read()
 		inputFile.close()
+		'''
+			Una vez que ya tenemos los contenidos debemos tokenizarlos.
+			El for es temporal ya que su funcion es imprimir el token 
+			genreado por el lexer para poder corrgir.
+		'''
 		for token in lexer.tokenize(data):
 			print(token)
 	else:
+		'''
+			Este casp abre una consola interactiva, con la que se podra
+			verificar la generacion de tokens de forma correcta.
+		'''
 		while True:
 			try:
 				text = input('C.Elda > ')

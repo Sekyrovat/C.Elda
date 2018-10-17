@@ -8,13 +8,19 @@ import sys
 from sly import Lexer
 
 '''
- Clase de Lexer utilizado para el comentario inicial que debe dar el alumno.
- Contiene los tokens de comentario inicial y matricula, ya que de acuerdo a las especificaciones --- Hice muchas cosas, tienes que rehacer este comentario, perdon XD
- dadas esto es un requerimieto.
+	Clase del lexer que se usara para verificar la existencia del comentario inicial.
+	Debido a que el comentario inicial puede ser en un bloque (/* */) o de linea (//)
+	esta clase activara otra clase dependiendo del tipo de comentario que detecte.
+
+	Es importante hacer notar que el primer comentario con matricula es importante ya
+	que de otra forma no continuara con la compilacion, ya que ignorara todo hasta 
+	encontrar una matricula valida.
 '''
 class ComentarioInicialLexer(Lexer):
 
 	tokens = {COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE}
+
+	# Dependiendo de la regla que se cumpla se llamara a la clase adecuada
 
 	COMENTARIO_SIMPLE = r'//'
 	INICIO_COMENTARIO_BLOQUE = r'/\*'
@@ -27,82 +33,113 @@ class ComentarioInicialLexer(Lexer):
 		self.begin(ComentarioInicialBloqueLexer)
 		return t
 
+	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
 
+# Clase encargada de procesar el primer comentario si es simple (//)
 class ComentarioInicialSimpleLexer(Lexer):
 
 	tokens = {COMENTARIO_SIMPLE, CONTENIDO_COMENTARIO, MATRICULA, NEWLINE}
 
 	COMENTARIO_SIMPLE = r'//'
+
 	'''
 		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
 		Seguida de 8 numeros en el rango de 0 va 9.
 	'''
 	NEWLINE = r'\n'
+
 	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
-	MATRICULA = r'\s.*\b[AaLl]\d{8}\b.*' # \d expande a [0-9]
+	MATRICULA = r'\s.*\b[AaLl]\d{8}\b.*'
+	
+	# Regla para ignorar todo el texto del comentario que no sea la matricula.
 	CONTENIDO_COMENTARIO = r'\s.*'
 
+	'''
+		Si encontramos un NEWLINE debemos aumentar el numero de lineas en 1. Esto es 
+		importante ya que es lo que nos permitira indicarle al programador donde fue 
+		su error.
+	'''
 	def NEWLINE(self, t):
 		self.lineno += 1
 		return t
 
+	'''
+		Si encontramos la matricula llamamos a la clase del lexer que procesara el cuerpo del
+		codigo.
+	'''
 	def MATRICULA(self, t):
 		self.begin(CEldaLexer)
 		return t
 
+	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
-
+# Clase encargada de procesar el primer comentario si es de bloque (/* */)
 class ComentarioInicialBloqueLexer(Lexer):
 
 	tokens = {INICIO_COMENTARIO_BLOQUE, FIN_COMENTARIO_BLOQUE, CONTENIDO_COMENTARIO, MATRICULA}
 
+	# Rewgla para indicar que existe un fin de linea.
 	ignore_newline = r'\n'
 
+	# Reglas para marcar el inicio y fin del comentario en bloque.
 	INICIO_COMENTARIO_BLOQUE = r'/\*'
 	FIN_COMENTARIO_BLOQUE = r'\*/'
+	
 	'''
 		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
 		Seguida de 8 numeros en el rango de 0 va 9.
 	'''
 	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
-	MATRICULA = r'(.*)\b[AaLl]\d{8}\b(?:(?!\*/).)*' # \d expande a [0-9]
+	MATRICULA = r'(.*)\b[AaLl]\d{8}\b(?:(?!\*/).)*'
+	
+	# Regla para ignorar todo el texto del comentario que no sea la matricula.
 	CONTENIDO_COMENTARIO = r'(?:(?!\*/).)+'
 
+	'''
+		Si encontramos un NEWLINE debemos aumentar el numero de lineas en 1. Esto es 
+		importante ya que es lo que nos permitira indicarle al programador donde fue 
+		su error.
+	'''
 	def ignore_newline(self, t):
 		self.lineno += 1
 
+	# Cuando se termina el comentario llamamos ala funcion principal.
 	def FIN_COMENTARIO_BLOQUE(self, t):
 		self.begin(CEldaLexer)
 		return t
 
+	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
 
+# Clase encargada de ignorar todos los comentarios de bloque.
 class ComentarioBloqueLexer(Lexer):
 
 	tokens = {}
 	
+	# Todo lo que va dentro de un comentario de bloque debe ser ignorado.
 	ignore_newline = r'\n'
+
+	# Sin embargo se debe de poner atencion al fin del comentario.
 	ignore_fin_comentario_bloque = r'\*/'
-	'''
-		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
-		Seguida de 8 numeros en el rango de 0 va 9.
-	'''
-	# Se usan expresiones regex. En el regex usado la expresion \d es equivalente a [0-9]
+	
 	ignore_contenido_comentario = r'(?:(?!\*/).)+'
 
+	# Cuando se detecten saltos de linea debemos sumarle uno al numero de linea.
 	def ignore_newline(self, t):
 		self.lineno += 1
 
+	# Cuando se termina el comentario de bloque quitamos el estado.
 	def ignore_fin_comentario_bloque(self, t):
 		self.pop_state()
 
+	# Funcion utilizada para marcar que no se logro procesar un caracter.
 	def error(self, t):
 		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
 		self.index += 1
@@ -110,12 +147,15 @@ class ComentarioBloqueLexer(Lexer):
 '''
 	Cuando se termina de procesar el comentario Inicial se procede a utilizar este lexer en el resto
 	del programa.
+	Este Lexer se encargara de la tokenizacion primaria.
 '''
 class CEldaLexer(Lexer):
 
 	def __init__(self):
+		# Inicializamos variables de control.
 		self.nesting_level = 0
 		self.lineno = 1
+		# Este Lexer inicia al del comentario inicial para realizar la busqueda del comentario con matricula.
 		self.begin(ComentarioInicialLexer)
 
 	# Aqui se dan todas las tokens que seran utilizadas.
@@ -124,17 +164,24 @@ class CEldaLexer(Lexer):
 	literals = {',', ';', '{', '}', '(', ')', '+', '-', '*', '/', '!', '~', '?', ':', '[', ']', '%', '^', '&', '|'}
 	# ignore = ' \t'
 
-	# Fuerza que haya algun caracter de espacio antes del cuerpo del comentario ---Hector, hazlo decente XD
+	'''
+		La siguiente seccion de codigo consiste en la declaracion de todas las expresiones regulares
+		de los tokens que usara el compilador.
+	'''
+	
+	'''
+		Las siguientes expresiones regulares estan hechas con el proposito de forzar a que exista como
+		minimo un espacio en blanco entre el inicio del cuerpo de un comentario y la inicializacion del
+		mismo.
+		Estas reglas se usan con la intencion de poder ignorar comentarios.
+	'''
 	ignore_comentario_simple = r'//.*'
 	ignore_comentario_bloque = r'/\*'
 
-	# Tokens
-	'''
-		Aqui declaramos todos los tokens que usara el compilador. ---Las expresiones regulares de los tokens
-	'''
 	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
 	TAB = r'\t'
 	SPACE = r' '
+
 	'''
 		Los NEWLINES tambien se consideraran para los softerrors ya que mas 80 caracteres por linea 
 		se consideran mala practica, ademas de que se requieren por estandar junto con el uso de 
@@ -229,17 +276,21 @@ class CEldaLexer(Lexer):
 	# ID["float"] = FLOAT 
 	# COMPARADOR = r'<>?|>'
 
-	# Ignored pattern
-	'''
-		Seccion de expresiones regulares que se usaran para ignorar comentarios.
-		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
-		del output grafico. Ya que seran errores de tipo soft.
-	'''
-
 	# Extra action for newlines
+
+	'''
+		En caso de que se detecte un comentario de bloque guardamos el estado.
+		Ademas de llamar la clase del lexer encargada de procesar los comentarios
+		de bloque.
+	'''
 	def ignore_comentario_bloque(self, t):
 		self.push_state(ComentarioBloqueLexer)
 
+	'''
+		Si encontramos un NEWLINE debemos aumentar el numero de lineas en 1. Esto es 
+		importante ya que es lo que nos permitira indicarle al programador donde fue 
+		su error.
+	'''
 	def NEWLINE(self, t):
 		self.lineno += 1
 		return t
