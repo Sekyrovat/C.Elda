@@ -59,11 +59,10 @@ class ComentarioInicialSimpleLexer(Lexer):
 
 class ComentarioInicialBloqueLexer(Lexer):
 
-	tokens = {INICIO_COMENTARIO_BLOQUE, FIN_COMENTARIO_BLOQUE, CONTENIDO_COMENTARIO, MATRICULA}
+	tokens = {FIN_COMENTARIO_BLOQUE, CONTENIDO_COMENTARIO, MATRICULA}
 
 	ignore_newline = r'\n'
 
-	INICIO_COMENTARIO_BLOQUE = r'/\*'
 	FIN_COMENTARIO_BLOQUE = r'\*/'
 	'''
 		La matricula debe iniciar con A o L ya sea en mayuscula o minuscula.
@@ -116,15 +115,26 @@ class CEldaLexer(Lexer):
 	def __init__(self):
 		self.nesting_level = 0
 		self.lineno = 1
-		self.begin(ComentarioInicialLexer)
+		self.tabCount = 0
+		self.begin(ComentarioInicialLexer) # Cambiamos inmediatamente al lexer para procesar el comentario inicial.
 
 	# Aqui se dan todas las tokens que seran utilizadas.
-	tokens = {INCREMENT, DECREMENT, TAB, SPACE, NEWLINE, BITWISE_SHIFT, COMPARADOR, EQ_NEQ, AND, OR, ASSIGNMENT, MATRICULA, BOID, BOARRID, BOMATID, FLID, FLARRID, FLMATID, INID, INARRID, INMATID, CHID, CHARRID, CHMATID, STID, STARRID, STMATID, FIID, PIID, TEXT, NUMERO, IDFUNCION, COMMENT}
+	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, OR, AND, EQ_NEQ, COMPARADOR, BITWISE_SHIFT, INCREMENT, DECREMENT, 
+			  BOID, BOCONID, BOARRID, BOMATID, FLID, FLCONID, FLARRID, FLMATID, INID, INCONID, INARRID, INMATID,
+			  CHID, CHCONID, CHARRID, CHMATID, STID, STCONID, STARRID, STMATID, FIID, PIID, IDFUNCION, A_BOOLEAN,
+			  DECIMAL, ENTERO, A_CHAR, A_STRING, CONST, INT, FLOAT, BOOL, CHAR, STRING, FILA, PILA, MAIN, IF, ELSEIF,
+			  ELSE, SWITCH, CASE, DO, WHILE, FOR, RETURN, READ, WRITE, COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE,
+			  CONTENIDO_COMENTARIO, MATRICULA, FIN_COMENTARIO_BLOQUE}
 	# Aqui declaramos las literales que se usaran.
 	literals = {',', ';', '{', '}', '(', ')', '+', '-', '*', '/', '!', '~', '?', ':', '[', ']', '%', '^', '&', '|'}
 	# ignore = ' \t'
 
-	# Fuerza que haya algun caracter de espacio antes del cuerpo del comentario ---Hector, hazlo decente XD
+	# Ignored pattern
+	'''
+		Seccion de expresiones regulares que se usaran para ignorar comentarios.
+		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
+		del output grafico. Ya que seran errores de tipo soft.
+	'''
 	ignore_comentario_simple = r'//.*'
 	ignore_comentario_bloque = r'/\*'
 
@@ -133,8 +143,8 @@ class CEldaLexer(Lexer):
 		Aqui declaramos todos los tokens que usara el compilador. ---Las expresiones regulares de los tokens
 	'''
 	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
-	TAB = r'\t'
-	SPACE = r' '
+	TAB		= r'\t'
+	SPACE	= r' '
 	'''
 		Los NEWLINES tambien se consideraran para los softerrors ya que mas 80 caracteres por linea 
 		se consideran mala practica, ademas de que se requieren por estandar junto con el uso de 
@@ -165,48 +175,45 @@ class CEldaLexer(Lexer):
 	BITWISE_SHIFT = r'<<|>>'
 
 	# Expresiones regulares para las comparaciones.
-	COMPARADOR = r'(<|>)=?'
-	AND = r'&&'
-	OR = r'\|\|'
+	COMPARADOR	= r'(<|>)=?'
+	AND			= r'&&'
+	OR			= r'\|\|'
 
 	# Seccion con las expresiones regulares que se usaran para procesar los IDs.
 	# Se debe hacer notar que \w expande [a-zA-Z0-9_]
-	BOMATID = r'bMat[A-Z]\w*'
-	BOARRID = r'bArr[A-Z]\w*'
-	BOID = r'b[A-Z]\w*'
+	BOMATID		= r'bMat[A-Z]\w*'
+	BOARRID		= r'bArr[A-Z]\w*'
+	BOCONID		= r'b[A-Z][A-Z_]*'
+	BOID		= r'b[A-Z]\w*'
+	A_BOOLEAN	= r'true|false'
 	
-	FLMATID = r'fMat[A-Z]\w*'
-	FLARRID = r'fArr[A-Z]\w*'
-	FLID = r'f[A-Z]\w*'
+	FLMATID	= r'fMat[A-Z]\w*'
+	FLARRID	= r'fArr[A-Z]\w*'
+	FLCONID	= r'f[A-Z][A-Z_]*'
+	FLID	= r'f[A-Z]\w*'
+	DECIMAL	= r'\d+\.\d+'
 	
-	INMATID = r'iMat[A-Z]\w*'
-	INARRID = r'iArr[A-Z]\w*'
-	INID = r'i[A-Z]\w*'
+	INMATID	= r'iMat[A-Z]\w*'
+	INARRID	= r'iArr[A-Z]\w*'
+	INCONID	= r'i[A-Z][A-Z_]*'
+	INID	= r'i[A-Z]\w*'
+	ENTERO	= r'\d+'
 	
-	CHMATID = r'cMat[A-Z]\w*'
-	CHARRID = r'cArr[A-Z]\w*'
-	CHID = r'c[A-Z]\w*'
+	CHMATID	= r'cMat[A-Z]\w*'
+	CHARRID	= r'cArr[A-Z]\w*'
+	CHCONID	= r'c[A-Z][A-Z_]*'
+	CHID	= r'c[A-Z]\w*'
+	A_CHAR	= r'\'.\''
 	
-	STMATID = r'sMat[A-Z]\w*'
-	STARRID = r'sArr[A-Z]\w*'
-	STID = r's[A-Z]\w*'
-	
+	STMATID		= r'sMat[A-Z]\w*'
+	STARRID		= r'sArr[A-Z]\w*'
+	STCONID		= r's[A-Z][A-Z_]*'
+	STID		= r's[A-Z]\w*'
+	A_STRING	= r'"[^"\\]*(?:\\.[^"\\]*)*"'
 
-	#####################################################################
-	############# Falta modificar las expresiones para que  #############
-	############# cumplan con los diagramas, ya que carecen #############
-	############# de un ID y el tipo de dato que almacenan  #############
-	#####################################################################
 	# ID de pilas y de Filas
 	FIID = r'stk[A-Z]\w*'
 	PIID = r'q[A-Z]\w*'
-	#####################################################################
-	#####################################################################
-	#####################################################################
-	#####################################################################
-
-	#TEXT
-	#NUMERO
 
 	'''
 		Expresion regular para procesar el ID de la funcion.
@@ -214,34 +221,47 @@ class CEldaLexer(Lexer):
 		de dicha funcion.
 	'''
 	IDFUNCION = r'[a-zA-Z]\w*'
-	
-	# ID = r'[a-zA-Z]\w*'
-	# CTE_F = r'\d*\.\d+'
-	# CTE_I = r'\d+'
-	# A_STRING = r'\"(\\\"|[^\"])*\"'
-	# A_CHAR = r'\'.|(\\n)\''
-	# ID["program"] = PROGRAM
-	# ID["var"] = VAR
-	# ID["if"] = IF
-	# ID["else"] = ELSE
-	# ID["print"] = PRINT
-	# ID["int"] = INT
-	# ID["float"] = FLOAT 
-	# COMPARADOR = r'<>?|>'
 
-	# Ignored pattern
-	'''
-		Seccion de expresiones regulares que se usaran para ignorar comentarios.
-		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
-		del output grafico. Ya que seran errores de tipo soft.
-	'''
+	IDFUNCION["const"]	= CONST
+	IDFUNCION["int"]	= INT
+	IDFUNCION["float"]	= FLOAT
+	IDFUNCION["bool"]	= BOOL
+	IDFUNCION["char"]	= CHAR
+	IDFUNCION["string"]	= STRING
+	IDFUNCION["fila"]	= FILA
+	IDFUNCION["pila"]	= PILA
+	IDFUNCION["main"]	= MAIN
+	IDFUNCION["if"]		= IF
+	IDFUNCION["elseif"]	= ELSEIF
+	IDFUNCION["else"]	= ELSE
+	IDFUNCION["switch"]	= SWITCH
+	IDFUNCION["case"]	= CASE
+	IDFUNCION["do"]		= DO
+	IDFUNCION["while"]	= WHILE
+	IDFUNCION["for"]	= FOR
+	IDFUNCION["return"]	= RETURN
+	IDFUNCION["read"]	= READ
+	IDFUNCION["write"]	= WRITE
 
 	# Extra action for newlines
 	def ignore_comentario_bloque(self, t):
 		self.push_state(ComentarioBloqueLexer)
 
+	def TAB(self, t):
+		self.tabCount += 1
+		return t
+
 	def NEWLINE(self, t):
 		self.lineno += 1
+		self.tabCount = 0
+		return t
+
+	def ENTERO(self, t):
+		t.value = int(t.value)
+		return t
+
+	def DECIMAL(self, t):
+		t.value = float(t.value)
 		return t
 
 	# Funcion utilizada para marcar que no se logro procesar un caracter.
