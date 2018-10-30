@@ -28,8 +28,7 @@ class ComentarioInicialLexer(Lexer):
 		return t
 
 	def error(self, t):
-		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
-		self.index += 1
+		self.begin(CEldaLexer)
 
 class ComentarioInicialSimpleLexer(Lexer):
 
@@ -54,8 +53,7 @@ class ComentarioInicialSimpleLexer(Lexer):
 		return t
 
 	def error(self, t):
-		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
-		self.index += 1
+		self.begin(CEldaLexer)
 
 class ComentarioInicialBloqueLexer(Lexer):
 
@@ -80,8 +78,7 @@ class ComentarioInicialBloqueLexer(Lexer):
 		return t
 
 	def error(self, t):
-		print('Line %d: Bad character %r' % (self.lineno, t.value[0]))
-		self.index += 1
+		self.begin(CEldaLexer)
 
 class ComentarioBloqueLexer(Lexer):
 
@@ -119,14 +116,15 @@ class CEldaLexer(Lexer):
 		self.begin(ComentarioInicialLexer) # Cambiamos inmediatamente al lexer para procesar el comentario inicial.
 
 	# Aqui se dan todas las tokens que seran utilizadas.
-	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, OR, AND, EQ_NEQ, COMPARADOR, BITWISE_SHIFT, INCREMENT, DECREMENT, 
+	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, TERNARIOPT1, TERNARIOPT2, OR, AND, BIT_OR, BIT_XOR, BIT_AND, EQ_NEQ, COMPARADOR, BITWISE_SHIFT, PLUS, MINUS, TIMES, DIV, MOD, INCREMENT, DECREMENT, 
 			  BOID, BOCONID, BOARRID, BOMATID, FLID, FLCONID, FLARRID, FLMATID, INID, INCONID, INARRID, INMATID,
-			  CHID, CHCONID, CHARRID, CHMATID, STID, STCONID, STARRID, STMATID, FIID, PIID, IDFUNCION, A_BOOLEAN,
-			  DECIMAL, ENTERO, A_CHAR, A_STRING, CONST, INT, FLOAT, BOOL, CHAR, STRING, FILA, PILA, MAIN, IF, ELSEIF,
-			  ELSE, SWITCH, CASE, DO, WHILE, FOR, RETURN, READ, WRITE, COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE,
+			  CHID, CHCONID, CHARRID, CHMATID, STID, STCONID, STARRID, STMATID, FIBOID, FIFLID, FIINID, FICHID, FISTID,
+			  PIBOID, PIFLID, PIINID, PICHID, PISTID, IDFUNCION, A_BOOLEAN, DECIMAL, ENTERO, A_CHAR, A_STRING, CONST,
+			  FUNC, VOID, BOOL, FLOAT, INT, CHAR, STRING, FILA, PILA, MAIN, IF, ELSEIF, ELSE, SWITCH, CASE, DEFAULT, DO,
+			  WHILE, FOR, BREAK, CONTINUE, RETURN, READ, WRITE, COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE,
 			  CONTENIDO_COMENTARIO, MATRICULA, FIN_COMENTARIO_BLOQUE}
 	# Aqui declaramos las literales que se usaran.
-	literals = {',', ';', '{', '}', '(', ')', '+', '-', '*', '/', '!', '~', '?', ':', '[', ']', '%', '^', '&', '|'}
+	literals = {',', ';', '{', '}', '(', ')', '+', '-', '!', '~', '[', ']'}
 	# ignore = ' \t'
 
 	# Ignored pattern
@@ -142,15 +140,6 @@ class CEldaLexer(Lexer):
 	'''
 		Aqui declaramos todos los tokens que usara el compilador. ---Las expresiones regulares de los tokens
 	'''
-	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
-	TAB		= r'\t'
-	SPACE	= r' '
-	'''
-		Los NEWLINES tambien se consideraran para los softerrors ya que mas 80 caracteres por linea 
-		se consideran mala practica, ademas de que se requieren por estandar junto con el uso de 
-		whiles, fors, if, etcetera. Seran parte de lo graficado.
-	'''
-	NEWLINE = r'\n'
 
 	'''
 		Tokens para incremento y decremento de variables. Ejem i++, --j
@@ -159,61 +148,78 @@ class CEldaLexer(Lexer):
 	'''
 	INCREMENT = r'\+\+'
 	DECREMENT = r'--'
-	
-	# Expresione regular para la verificacion de igualdad o diferncia.
-	EQ_NEQ = r'(=|!)='
 
+	TIMES	= r' \* '
+	DIV		= r' / '
+	MOD		= r' % '
+
+	PLUS	= r' + '
+	MINUS	= r' - '
+
+	# Expresion regular para realizar un shift de bits.
+	BITWISE_SHIFT = r' (<<|>>) '
+
+	# Expresiones regulares para las comparaciones.
+	COMPARADOR	= r' ((<|>)=?) '
+	EQ_NEQ 		= r' (=|!)= '
+	BIT_AND		= r' & '
+	BIT_XOR		= r' \^ '
+	BIT_OR		= r' \| '
+	AND			= r' && '
+	OR			= r' \|\| '
+
+	TERNARIOPT1	= r' \? '
+	TERNARIOPT2	= r' : '
+	
 	'''
 		Expresion regular que maneja los multiples tipos de asignacion.
 		Se maneja la asignacion con suma(+=), resta(-=), multiplicacion(*=), 
 		division(/=), modulo(%=), bitwise left shift(<<=), bitwise right shift(>>=),
 		bitwise AND(&=), bitwise OR(|=), bitwise not(^=) y la asignacion sencilla (=) 
 	'''
-	ASSIGNMENT = r'(\+|-|\*|/|%|&|\^|\||<<|>>)?='
-
-	# Expresion regular para realizar un shift de bits.
-	BITWISE_SHIFT = r'<<|>>'
-
-	# Expresiones regulares para las comparaciones.
-	COMPARADOR	= r'(<|>)=?'
-	AND			= r'&&'
-	OR			= r'\|\|'
+	ASSIGNMENT = r' (\+|-|\*|/|%|&|\^|\||<<|>>)?= '
 
 	# Seccion con las expresiones regulares que se usaran para procesar los IDs.
 	# Se debe hacer notar que \w expande [a-zA-Z0-9_]
-	BOMATID		= r'bMat[A-Z]\w*'
-	BOARRID		= r'bArr[A-Z]\w*'
-	BOCONID		= r'b[A-Z][A-Z_]*'
-	BOID		= r'b[A-Z]\w*'
+	BOMATID		= r'bMat[A-Z]\w*\b'
+	BOARRID		= r'bArr[A-Z]\w*\b'
+	BOCONID		= r'b[A-Z][A-Z_]*\b'
+	BOID		= r'b[A-Z]\w*\b'
 	A_BOOLEAN	= r'true|false'
+	FIBOID		= r'fiBool[A-Z]\w*\b'
+	PIBOID		= r'piBool[A-Z]\w*\b'
 	
-	FLMATID	= r'fMat[A-Z]\w*'
-	FLARRID	= r'fArr[A-Z]\w*'
-	FLCONID	= r'f[A-Z][A-Z_]*'
-	FLID	= r'f[A-Z]\w*'
+	FLMATID	= r'fMat[A-Z]\w*\b'
+	FLARRID	= r'fArr[A-Z]\w*\b'
+	FLCONID	= r'f[A-Z][A-Z_]*\b'
+	FLID	= r'f[A-Z]\w*\b'
 	DECIMAL	= r'\d+\.\d+'
+	FIFLID	= r'fiFloat[A-Z]\w*\b'
+	PIFLID	= r'piFloat[A-Z]\w*\b'
 	
-	INMATID	= r'iMat[A-Z]\w*'
-	INARRID	= r'iArr[A-Z]\w*'
-	INCONID	= r'i[A-Z][A-Z_]*'
-	INID	= r'i[A-Z]\w*'
+	INMATID	= r'iMat[A-Z]\w*\b'
+	INARRID	= r'iArr[A-Z]\w*\b'
+	INCONID	= r'i[A-Z][A-Z_]*\b'
+	INID	= r'i[A-Z]\w*\b'
 	ENTERO	= r'\d+'
+	FIINID	= r'fiInt[A-Z]\w*\b'
+	PIINID	= r'piInt[A-Z]\w*\b'
 	
-	CHMATID	= r'cMat[A-Z]\w*'
-	CHARRID	= r'cArr[A-Z]\w*'
-	CHCONID	= r'c[A-Z][A-Z_]*'
-	CHID	= r'c[A-Z]\w*'
+	CHMATID	= r'cMat[A-Z]\w*\b'
+	CHARRID	= r'cArr[A-Z]\w*\b'
+	CHCONID	= r'c[A-Z][A-Z_]*\b'
+	CHID	= r'c[A-Z]\w*\b'
 	A_CHAR	= r'\'.\''
+	FICHID	= r'fiChar[A-Z]\w*\b'
+	PICHID	= r'piChar[A-Z]\w*\b'
 	
-	STMATID		= r'sMat[A-Z]\w*'
-	STARRID		= r'sArr[A-Z]\w*'
-	STCONID		= r's[A-Z][A-Z_]*'
-	STID		= r's[A-Z]\w*'
+	STMATID		= r'sMat[A-Z]\w*\b'
+	STARRID		= r'sArr[A-Z]\w*\b'
+	STCONID		= r's[A-Z][A-Z_]*\b'
+	STID		= r's[A-Z]\w*\b'
 	A_STRING	= r'"[^"\\]*(?:\\.[^"\\]*)*"'
-
-	# ID de pilas y de Filas
-	FIID = r'stk[A-Z]\w*'
-	PIID = r'q[A-Z]\w*'
+	FISTID		= r'fiString[A-Z]\w*\b'
+	PISTID		= r'piString[A-Z]\w*\b'
 
 	'''
 		Expresion regular para procesar el ID de la funcion.
@@ -222,26 +228,40 @@ class CEldaLexer(Lexer):
 	'''
 	IDFUNCION = r'[a-zA-Z]\w*'
 
-	IDFUNCION["const"]	= CONST
-	IDFUNCION["int"]	= INT
-	IDFUNCION["float"]	= FLOAT
-	IDFUNCION["bool"]	= BOOL
-	IDFUNCION["char"]	= CHAR
-	IDFUNCION["string"]	= STRING
-	IDFUNCION["fila"]	= FILA
-	IDFUNCION["pila"]	= PILA
-	IDFUNCION["main"]	= MAIN
-	IDFUNCION["if"]		= IF
-	IDFUNCION["elseif"]	= ELSEIF
-	IDFUNCION["else"]	= ELSE
-	IDFUNCION["switch"]	= SWITCH
-	IDFUNCION["case"]	= CASE
-	IDFUNCION["do"]		= DO
-	IDFUNCION["while"]	= WHILE
-	IDFUNCION["for"]	= FOR
-	IDFUNCION["return"]	= RETURN
-	IDFUNCION["read"]	= READ
-	IDFUNCION["write"]	= WRITE
+	IDFUNCION["const"]		= CONST
+	IDFUNCION["func"]		= FUNC
+	IDFUNCION["void"]		= VOID
+	IDFUNCION["bool"]		= BOOL
+	IDFUNCION["float"]		= FLOAT
+	IDFUNCION["int"]		= INT
+	IDFUNCION["char"]		= CHAR
+	IDFUNCION["string"]		= STRING
+	IDFUNCION["fila"]		= FILA
+	IDFUNCION["pila"]		= PILA
+	IDFUNCION["main"]		= MAIN
+	IDFUNCION["if"]			= IF
+	IDFUNCION["elseif"]		= ELSEIF
+	IDFUNCION["else"]		= ELSE
+	IDFUNCION["switch"]		= SWITCH
+	IDFUNCION["case"]		= CASE
+	IDFUNCION["default"]	= DEFAULT
+	IDFUNCION["for"]		= FOR
+	IDFUNCION["do"]			= DO
+	IDFUNCION["while"]		= WHILE
+	IDFUNCION["break"]		= BREAK
+	IDFUNCION["continue"]	= CONTINUE
+	IDFUNCION["return"]		= RETURN
+	IDFUNCION["read"]		= READ
+	IDFUNCION["write"]		= WRITE
+	'''
+		Los NEWLINES tambien se consideraran para los softerrors ya que mas 80 caracteres por linea 
+		se consideran mala practica, ademas de que se requieren por estandar junto con el uso de 
+		whiles, fors, if, etcetera. Seran parte de lo graficado.
+	'''
+	NEWLINE = r'\n'
+	# Es importante procesar los TABS ya que seran parte de los soft errors que se graficaran.
+	TAB		= r'\t'
+	SPACE	= r' '
 
 	# Extra action for newlines
 	def ignore_comentario_bloque(self, t):
