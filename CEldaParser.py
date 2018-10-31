@@ -1,6 +1,7 @@
 import sys
 from sly import Parser
 from CEldaLexer import CEldaLexer
+from TablaVariables import TablaVariables
 
 class CEldaParser(Parser):
 	#start = 'tabs'
@@ -26,11 +27,13 @@ class CEldaParser(Parser):
 	)
 
 	def __init__(self):
-		pass
+		self.tablaVariables = TablaVariables()
+		self.dir = 5000
 
 	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion')
 	def programa(self, p):
 		print("Success!")
+		print(self.tablaVariables)
 		return 0
 
 	@_('comentarioInicialSimple',
@@ -78,7 +81,7 @@ class CEldaParser(Parser):
 	   'CHAR SPACE CHCONID ASSIGNMENT A_CHAR',
 	   'STRING SPACE STCONID ASSIGNMENT A_STRING')
 	def declaracionConstante(self, p):
-		pass
+		return p[4]
 
 	@_('declaracionVariable ";" newlines bloqueDeclaracionGlobales',
 	   'empty')
@@ -145,15 +148,18 @@ class CEldaParser(Parser):
 
 	@_('BOID')
 	def boolSimple(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.BOID, 'bool', self.dir)
+		self.dir += 1
 
-	@_('BOARRID "[" asignacion "]"')
+	@_('BOARRID "[" tamano "]"')
 	def boolArray(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.BOARRID, 'bool', self.dir, p.tamano)
+		self.dir += p.tamano
 
-	@_('BOMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('BOMATID "[" tamano "]" "[" tamano "]"')
 	def boolMatriz(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.BOMATID, 'bool', self.dir, p.tamano0, p.tamano1)
+		self.dir += p.tamano0 * p.tamano1
 
 	@_('FLOAT SPACE declaracionFloat2')
 	def declaracionFloat(self, p):
@@ -169,11 +175,11 @@ class CEldaParser(Parser):
 	def floatSimple(self, p):
 		pass
 
-	@_('FLARRID "[" asignacion "]"')
+	@_('FLARRID "[" tamano "]"')
 	def floatArray(self, p):
 		pass
 
-	@_('FLMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('FLMATID "[" tamano "]" "[" tamano "]"')
 	def floatMatriz(self, p):
 		pass
 
@@ -191,11 +197,11 @@ class CEldaParser(Parser):
 	def intSimple(self, p):
 		pass
 
-	@_('INARRID "[" asignacion "]"')
+	@_('INARRID "[" tamano "]"')
 	def intArray(self, p):
 		pass
 
-	@_('INMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('INMATID "[" tamano "]" "[" tamano "]"')
 	def intMatriz(self, p):
 		pass
 
@@ -213,11 +219,11 @@ class CEldaParser(Parser):
 	def charSimple(self, p):
 		pass
 
-	@_('CHARRID "[" asignacion "]"')
+	@_('CHARRID "[" tamano "]"')
 	def charArray(self, p):
 		pass
 
-	@_('CHMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('CHMATID "[" tamano "]" "[" tamano "]"')
 	def charMatriz(self, p):
 		pass
 
@@ -235,13 +241,18 @@ class CEldaParser(Parser):
 	def stringSimple(self, p):
 		pass
 
-	@_('STARRID "[" asignacion "]"')
+	@_('STARRID "[" tamano "]"')
 	def stringArray(self, p):
 		pass
 
-	@_('STMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('STMATID "[" tamano "]" "[" tamano "]"')
 	def stringMatriz(self, p):
 		pass
+
+	@_('ENTERO',
+	   'INCONID')
+	def tamano(self, p):
+		return p[0]
 
 	@_('FILA SPACE declaracionFila2')
 	def declaracionFila(self, p):
