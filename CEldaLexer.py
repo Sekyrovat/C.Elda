@@ -308,3 +308,10 @@ if __name__ == '__main__':
 			if text:
 				for token in lexer.tokenize(text):
 					print(token)
+
+
+
+# Link a la pagina de plotly que suaremos para la grafica resultante:
+# https://plot.ly/python/pie-charts/
+# Link a la tablade precedencia
+# https://en.cppreference.com/w/c/language/operator_precedence
