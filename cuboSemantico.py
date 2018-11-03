@@ -766,4 +766,3 @@ class CuboSemantico:
 
 	def verificaSemantica1Operando(self,operacion,operando):
 		return self.cubo1Operando[operacion][operando]
->>>>>>> 4759a34b968e991fb3425e7220e9553e66f1bbb6
