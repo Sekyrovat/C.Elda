@@ -1,6 +1,6 @@
 #!/usr/bin/python
-
-# C.Elda.py
+#
+# CElda.py
 # Sergio López Madriz A01064725
 # Héctor Hernández Morales A00816446
 

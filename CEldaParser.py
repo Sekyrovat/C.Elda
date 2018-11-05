@@ -1,39 +1,55 @@
+#!/usr/bin/python
+#
+# CEldaParser.py
+# Sergio López Madriz A01064725
+# Héctor Hernández Morales A00816446
+
 import sys
 from sly import Parser
 from CEldaLexer import CEldaLexer
-from TablaVariables import TablaVariables
+from tablas import TablaConstantes, TablaVariables
+from cuadruplos import Cuadruplos
+import cuboSemantico
 
 class CEldaParser(Parser):
 	#start = 'tabs'
-	#debugfile = 'parser.out'
+	debugfile = 'parser.out'
 	tokens = CEldaLexer.tokens
 
 	precedence = (
 		('right', NEWLINE),
-		('right', ASSIGNMENT),
-		('right', TERNARIOPT1, TERNARIOPT2),
-		('left', OR),
-		('left', AND),
-		('left', BIT_OR),
-		('left', BIT_XOR),
-		('left', BIT_AND),
-		('left', EQ_NEQ),
-		('left', COMPARADOR),
-		('left', BITWISE_SHIFT),
-		('left', PLUS, MINUS),
-		('left', TIMES, DIV, MOD),
+		#('right', ASSIGNMENT),
+		#('right', TERNARIOPT1, TERNARIOPT2),
+		# ('left', OR),
+		# ('left', AND),
+		# ('left', BIT_OR),
+		# ('left', BIT_XOR),
+		# ('left', BIT_AND),
+		# ('left', EQ_NEQ),
+		# ('left', COMPARADOR),
+		# ('left', BITWISE_SHIFT),
+		# ('left', PLUS, MINUS),
+		# ('left', TIMES, DIV, MOD),
 		('right', "+", "-", "!", "~", INCREMENT, DECREMENT), # Unary plus and minus operatord
 		('left', POSTINCDEC) # Version postfija de incremento y decremento
 	)
 
 	def __init__(self):
+		self.tablaConstantes = TablaConstantes()
 		self.tablaVariables = TablaVariables()
-		self.dir = 5000
+		self.cuadruplos = Cuadruplos()
+		self.pilaOperandos = []
+		self.pilaOperadores = []
+		self.contadorCuadruplos = 0
+		self.contadorTemporales = 0
+		self.dirVariables = 5000
 
 	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion')
 	def programa(self, p):
 		print("Success!")
+		print(self.tablaConstantes)
 		print(self.tablaVariables)
+		print(self.cuadruplos)
 		return 0
 
 	@_('comentarioInicialSimple',
@@ -81,7 +97,7 @@ class CEldaParser(Parser):
 	   'CHAR SPACE CHCONID ASSIGNMENT A_CHAR',
 	   'STRING SPACE STCONID ASSIGNMENT A_STRING')
 	def declaracionConstante(self, p):
-		return p[4]
+		self.tablaConstantes.agregarATabla(p[2], p[0], p[4])
 
 	@_('declaracionVariable ";" newlines bloqueDeclaracionGlobales',
 	   'empty')
@@ -148,18 +164,18 @@ class CEldaParser(Parser):
 
 	@_('BOID')
 	def boolSimple(self, p):
-		self.tablaVariables.agregarATabla(p.BOID, 'bool', self.dir)
-		self.dir += 1
+		self.tablaVariables.agregarATabla(p.BOID, 'bool', self.dirVariables)
+		self.dirVariables += 1
 
 	@_('BOARRID "[" tamano "]"')
 	def boolArray(self, p):
-		self.tablaVariables.agregarATabla(p.BOARRID, 'bool', self.dir, p.tamano)
-		self.dir += p.tamano
+		self.tablaVariables.agregarATabla(p.BOARRID, 'bool', self.dirVariables, p.tamano)
+		self.dirVariables += p.tamano
 
 	@_('BOMATID "[" tamano "]" "[" tamano "]"')
 	def boolMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.BOMATID, 'bool', self.dir, p.tamano0, p.tamano1)
-		self.dir += p.tamano0 * p.tamano1
+		self.tablaVariables.agregarATabla(p.BOMATID, 'bool', self.dirVariables, p.tamano0, p.tamano1)
+		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('FLOAT SPACE declaracionFloat2')
 	def declaracionFloat(self, p):
@@ -173,15 +189,18 @@ class CEldaParser(Parser):
 
 	@_('FLID')
 	def floatSimple(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.FLID, 'float', self.dirVariables)
+		self.dirVariables += 1
 
 	@_('FLARRID "[" tamano "]"')
 	def floatArray(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.FLARRID, 'float', self.dirVariables, p.tamano)
+		self.dirVariables += p.tamano
 
 	@_('FLMATID "[" tamano "]" "[" tamano "]"')
 	def floatMatriz(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.FLMATID, 'float', self.dirVariables, p.tamano0, p.tamano1)
+		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('INT SPACE declaracionInt2')
 	def declaracionInt(self, p):
@@ -195,15 +214,18 @@ class CEldaParser(Parser):
 
 	@_('INID')
 	def intSimple(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.INID, 'int', self.dirVariables)
+		self.dirVariables += 1
 
 	@_('INARRID "[" tamano "]"')
 	def intArray(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.INARRID, 'int', self.dirVariables, p.tamano)
+		self.dirVariables += p.tamano
 
 	@_('INMATID "[" tamano "]" "[" tamano "]"')
 	def intMatriz(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.INMATID, 'int', self.dirVariables, p.tamano0, p.tamano1)
+		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('CHAR SPACE declaracionChar2')
 	def declaracionChar(self, p):
@@ -217,15 +239,18 @@ class CEldaParser(Parser):
 
 	@_('CHID')
 	def charSimple(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.CHID, 'char', self.dirVariables)
+		self.dirVariables += 1
 
 	@_('CHARRID "[" tamano "]"')
 	def charArray(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.CHARRID, 'char', self.dirVariables, p.tamano)
+		self.dirVariables += p.tamano
 
 	@_('CHMATID "[" tamano "]" "[" tamano "]"')
 	def charMatriz(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.CHMATID, 'char', self.dirVariables, p.tamano0, p.tamano1)
+		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('STRING SPACE declaracionString2')
 	def declaracionString(self, p):
@@ -239,20 +264,26 @@ class CEldaParser(Parser):
 
 	@_('STID')
 	def stringSimple(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.STID, 'string', self.dirVariables)
+		self.dirVariables += 1
 
 	@_('STARRID "[" tamano "]"')
 	def stringArray(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.STARRID, 'string', self.dirVariables, p.tamano)
+		self.dirVariables += p.tamano
 
 	@_('STMATID "[" tamano "]" "[" tamano "]"')
 	def stringMatriz(self, p):
-		pass
+		self.tablaVariables.agregarATabla(p.STMATID, 'string', self.dirVariables, p.tamano0, p.tamano1)
+		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('ENTERO',
 	   'INCONID')
 	def tamano(self, p):
-		return p[0]
+		try:
+			return self.tablaConstantes.getValor(p.INCONID)[2]
+		except KeyError:
+			return p[0]
 
 	@_('FILA SPACE declaracionFila2')
 	def declaracionFila(self, p):
@@ -278,7 +309,8 @@ class CEldaParser(Parser):
 	def declaracionPila2(self, p):
 		pass
 
-	@_('tabs statement newlines')
+	@_('statements tabs statement newlines',
+	   'tabs statement newlines')
 	def statements(self, p):
 		pass
 
@@ -320,7 +352,7 @@ class CEldaParser(Parser):
 	@_('literal',
 	   'constante')
 	def literalOConstante(self, p):
-		pass
+		return (p[0], 'v')
 		
 	@_('A_BOOLEAN',
 	   'DECIMAL',
@@ -328,7 +360,7 @@ class CEldaParser(Parser):
 	   'A_CHAR',
 	   'A_STRING')
 	def literal(self, p):
-		pass
+		return p[0]
 
 	@_('BOCONID',
 	   'FLCONID',
@@ -336,7 +368,7 @@ class CEldaParser(Parser):
 	   'CHCONID',
 	   'STCONID')
 	def constante(self, p):
-		pass
+		return self.tablaConstantes.getValor(p[0])[2]
 
 	@_('FOR "(" asignacion ";" asignacion ";" asignacion ")" corchetes')
 	def cicloFor(self, p):
@@ -357,119 +389,103 @@ class CEldaParser(Parser):
 	@_('id ASSIGNMENT asignacion',
 	   'ternario')
 	def asignacion(self, p):
-		pass
+		try:
+			self.cuadruplos.generaCuadruplo(p.ASSIGNMENT, p.asignacion, None, p.id)
+			self.contadorCuadruplos += 1
+		except KeyError:
+			return p.ternario
 
-	@_('logicOr ternario2')
+	@_('logicOr TERNARIOPT1 ternario TERNARIOPT2 ternario',
+	   'logicOr')
 	def ternario(self, p):
-		pass
+		return p[0]
 
-	@_('TERNARIOPT1 ternario TERNARIOPT2 ternario',
-	   'empty')
-	def ternario2(self, p):
-		pass
-
-	@_('logicAnd logicOr2')
+	@_('logicOr OR logicAnd',
+	   'logicAnd')
 	def logicOr(self, p):
-		pass
+		return p[0]
 
-	@_('OR logicAnd logicOr2',
-	   'empty')
-	def logicOr2(self, p):
-		pass
-
-	@_('bitwiseOr logicAnd2')
+	@_('logicAnd AND bitwiseOr',
+	   'bitwiseOr')
 	def logicAnd(self, p):
-		pass
+		return p[0]
 
-	@_('AND bitwiseOr logicAnd2',
-	   'empty')
-	def logicAnd2(self, p):
-		pass
-
-	@_('bitwiseXor bitwiseOr2')
+	@_('bitwiseOr BIT_OR bitwiseXor',
+	   'bitwiseXor')
 	def bitwiseOr(self, p):
-		pass
+		return p[0]
 
-	@_('BIT_OR bitwiseXor bitwiseOr2',
-	   'empty')
-	def bitwiseOr2(self, p):
-		pass
-
-	@_('bitwiseAnd bitwiseXor2')
+	@_('bitwiseXor BIT_XOR bitwiseAnd',
+	   'bitwiseAnd')
 	def bitwiseXor(self, p):
-		pass
+		return p[0]
 
-	@_('BIT_XOR bitwiseAnd bitwiseXor2',
-	   'empty')
-	def bitwiseXor2(self, p):
-		pass
-
-	@_('eqComparisson bitwiseAnd2')
+	@_('bitwiseAnd BIT_AND eqComparisson',
+	   'eqComparisson')
 	def bitwiseAnd(self, p):
-		pass
+		return p[0]
 
-	@_('BIT_AND eqComparisson bitwiseAnd2',
-	   'empty')
-	def bitwiseAnd2(self, p):
-		pass
-
-	@_('comparisson eqComparisson2')
+	@_('eqComparisson EQ_NEQ comparisson',
+	   'comparisson')
 	def eqComparisson(self, p):
-		pass
+		return p[0]
 
-	@_('EQ_NEQ comparisson eqComparisson2',
-	   'empty')
-	def eqComparisson2(self, p):
-		pass
-
-	@_('shift comparisson2')
+	@_('comparisson COMPARADOR shift',
+	   'shift')
 	def comparisson(self, p):
-		pass
+		return p[0]
 
-	@_('COMPARADOR shift comparisson2',
-	   'empty')
-	def comparisson2(self, p):
-		pass
-
-	@_('exp shift2')
+	@_('shift BITWISE_SHIFT exp',
+	   'exp')
 	def shift(self, p):
-		pass
+		return p[0]
 
-	@_('BITWISE_SHIFT exp shift2',
-	   'empty')
-	def shift2(self, p):
-		pass
-
-	@_('termino exp2')
+	@_('exp PLUS termino',
+	   'exp MINUS termino',
+	   'termino')
 	def exp(self, p):
-		pass
+		if len(p) == 3:
+			operandoDerecho = p.exp
+			operandoIzquierdo = p.termino
+			#tipo = cuboSemantico.verificaSemantica2Operandos('+', operandoIzquierdo[1], operandoDerecho[1])
+			#if tipo != 'error':
+			resultado = (self.contadorTemporales, 't')
+			self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
+			self.contadorTemporales += 1
+			self.contadorCuadruplos += 1
+			return resultado
+		return p.termino
 
-	@_('PLUS termino exp2',
-	   'MINUS termino exp2',
-	   'empty')
-	def exp2(self, p):
-		pass
-
-	@_('factor termino2')
+	@_('termino SPACE TIMES SPACE factor',
+	   'termino SPACE DIV SPACE factor',
+	   'termino SPACE MOD SPACE factor',
+	   'factor')
 	def termino(self, p):
-		pass
-
-	@_('TIMES factor termino2',
-	   'DIV factor termino2',
-	   'MOD factor termino2',
-	   'empty')
-	def termino2(self, p):
-		pass
+		if len(p) == 5:
+			operandoDerecho = p.factor
+			operandoIzquierdo = p.termino
+			#tipo = cuboSemantico.verificaSemantica2Operandos('+', operandoIzquierdo[1], operandoDerecho[1])
+			#if tipo != 'error':
+			resultado = (self.contadorTemporales, 't')
+			self.cuadruplos.generaCuadruplo(p[2], operandoIzquierdo, operandoDerecho, resultado)
+			self.contadorTemporales += 1
+			self.contadorCuadruplos += 1
+			return resultado
+		return p.factor
 
 	@_('unidad',
-	   '"!" unidad',
+	   'operacionUnaria')
+	def factor(self, p):
+		return p[0]
+
+	@_('"!" unidad',
 	   '"~" unidad',
 	   '"+" unidad',
 	   '"-" unidad',
 	   'INCREMENT unidad',
 	   'DECREMENT unidad')
-	def factor(self, p):
-		pass
+	def operacionUnaria(self, p):
+		return p[1]
 
 	@_('id',
 	   'id INCREMENT %prec POSTINCDEC',
@@ -478,17 +494,18 @@ class CEldaParser(Parser):
 	   'parentesis',
 	   'literalOConstante')
 	def unidad(self, p):
-		pass
+		self.pilaOperandos.append(p[0])
+		return p[0]
 
 	@_('"(" asignacion ")"')
 	def parentesis(self, p):
-		pass
+		return p.asignacion
 
 	@_('idSencillo',
 	   'idArr',
 	   'idMat')
 	def id(self, p):
-		pass
+		return (p[0], 'd')
 
 	@_('BOID',
 	   'FLID',
@@ -496,7 +513,7 @@ class CEldaParser(Parser):
 	   'CHID',
 	   'STID')
 	def idSencillo(self, p):
-		pass
+		return self.tablaVariables.conseguirDireccion(p[0])
 
 	@_('BOARRID "[" asignacion "]"',
 	   'FLARRID "[" asignacion "]"',
@@ -504,7 +521,7 @@ class CEldaParser(Parser):
 	   'CHARRID "[" asignacion "]"',
 	   'STARRID "[" asignacion "]"')
 	def idArr(self, p):
-		pass
+		return self.tablaVariables.conseguirDireccion(p[0], p.asignacion[0])
 
 	@_('BOMATID "[" asignacion "]" "[" asignacion "]"',
 	   'FLMATID "[" asignacion "]" "[" asignacion "]"',
@@ -512,7 +529,7 @@ class CEldaParser(Parser):
 	   'CHMATID "[" asignacion "]" "[" asignacion "]"',
 	   'STMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		pass
+		return self.tablaVariables.conseguirDireccion(p[0], p.asignacion0[0], p.asignacion1[0])
 
 	@_('IDFUNCION "(" argumentos',
 	   'READ "(" ")"',
@@ -547,13 +564,9 @@ class CEldaParser(Parser):
 	def newlines(self, p):
 		pass
 
-	@_('TAB tabs2')
+	@_('tabs TAB',
+	   'TAB')
 	def tabs(self, p):
-		pass
-
-	@_('TAB tabs2',
-	   'empty')
-	def tabs2(self, p):
 		pass
 
 	@_('')

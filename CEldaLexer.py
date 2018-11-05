@@ -7,6 +7,21 @@
 import sys
 from sly import Lexer
 
+eliminaEspacios = {
+	' += ': '+=',
+	' -= ': '-=',
+	' *= ': '*=',
+	' /= ': '/=',
+	' %= ': '%=',
+	' &= ': '&=',
+	' ^= ': '^=',
+	' |= ': '|=',
+	' <<= ': '<<=',
+	' >>= ': '>>=',
+	' = ': '='
+}
+
+
 '''
  Clase de Lexer utilizado para el comentario inicial que debe dar el alumno.
  Contiene los tokens de comentario inicial y matricula, ya que de acuerdo a las especificaciones --- Hice muchas cosas, tienes que rehacer este comentario, perdon XD
@@ -116,7 +131,8 @@ class CEldaLexer(Lexer):
 		self.begin(ComentarioInicialLexer) # Cambiamos inmediatamente al lexer para procesar el comentario inicial.
 
 	# Aqui se dan todas las tokens que seran utilizadas.
-	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, TERNARIOPT1, TERNARIOPT2, OR, AND, BIT_OR, BIT_XOR, BIT_AND, EQ_NEQ, COMPARADOR, BITWISE_SHIFT, PLUS, MINUS, TIMES, DIV, MOD, INCREMENT, DECREMENT, 
+	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, TERNARIOPT1, TERNARIOPT2, OR, AND, BIT_OR, BIT_XOR, BIT_AND, EQ_NEQ,
+			  COMPARADOR, BITWISE_SHIFT, PLUS, MINUS, TIMES, DIV, MOD, INCREMENT, DECREMENT, 
 			  BOID, BOCONID, BOARRID, BOMATID, FLID, FLCONID, FLARRID, FLMATID, INID, INCONID, INARRID, INMATID,
 			  CHID, CHCONID, CHARRID, CHMATID, STID, STCONID, STARRID, STMATID, FIBOID, FIFLID, FIINID, FICHID, FISTID,
 			  PIBOID, PIFLID, PIINID, PICHID, PISTID, IDFUNCION, A_BOOLEAN, DECIMAL, ENTERO, A_CHAR, A_STRING, CONST,
@@ -149,11 +165,11 @@ class CEldaLexer(Lexer):
 	INCREMENT = r'\+\+'
 	DECREMENT = r'--'
 
-	TIMES	= r' \* '
-	DIV		= r' / '
-	MOD		= r' % '
+	TIMES	= r'\*'
+	DIV		= r'/'
+	MOD		= r'%'
 
-	PLUS	= r' + '
+	PLUS	= r' \+ '
 	MINUS	= r' - '
 
 	# Expresion regular para realizar un shift de bits.
@@ -185,7 +201,7 @@ class CEldaLexer(Lexer):
 	BOARRID		= r'bArr[A-Z]\w*\b'
 	BOCONID		= r'b[A-Z][A-Z_]*\b'
 	BOID		= r'b[A-Z]\w*\b'
-	A_BOOLEAN	= r'true|false'
+	A_BOOLEAN	= r'TRUE|FALSE'
 	FIBOID		= r'fiBool[A-Z]\w*\b'
 	PIBOID		= r'piBool[A-Z]\w*\b'
 	
@@ -276,12 +292,30 @@ class CEldaLexer(Lexer):
 		self.tabCount = 0
 		return t
 
+	def DECIMAL(self, t):
+		t.value = float(t.value)
+		return t
+
 	def ENTERO(self, t):
 		t.value = int(t.value)
 		return t
 
-	def DECIMAL(self, t):
-		t.value = float(t.value)
+	def A_BOOLEAN(self, t):
+		if t.value == 'TRUE':
+			t.value = 1
+		else:
+			t.value = 0
+		return t
+
+
+
+
+
+
+
+
+	def ASSIGNMENT(self, t):
+		t.value = eliminaEspacios[t.value]
 		return t
 
 	# Funcion utilizada para marcar que no se logro procesar un caracter.

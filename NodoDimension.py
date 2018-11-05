@@ -1,3 +1,9 @@
+#!/usr/bin/python
+#
+# CEldaParser.py
+# Sergio López Madriz A01064725
+# Héctor Hernández Morales A00816446
+
 class NodoDimension:
 	def __init__(self, tamano, *nextNode):
 		self.tamano = int(tamano)
@@ -9,4 +15,4 @@ class NodoDimension:
 			self.next = nextNode[0]
 
 	def __str__(self):
-		return "tamano: " + str(self.tamano) + " m: " + str(self.m) + " " + str(self.next)
+		return "tamano: " + str(self.tamano) + " m: " + str(self.m) + " next: (" + str(self.next) + ")"
