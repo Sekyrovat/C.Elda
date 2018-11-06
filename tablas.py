@@ -10,7 +10,7 @@ class TablaConstantes(object):
 		self.tablaConstantes[nombre] = (nombre, tipo, valor)
 
 	def getValor(self, nombre):
-		return self.tablaConstantes[nombre]
+		return self.tablaConstantes[nombre][2]
 	
 	def __str__(self):
 		entradas = []

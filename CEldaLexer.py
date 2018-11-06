@@ -8,19 +8,38 @@ import sys
 from sly import Lexer
 
 eliminaEspacios = {
-	' += ': '+=',
-	' -= ': '-=',
-	' *= ': '*=',
-	' /= ': '/=',
-	' %= ': '%=',
-	' &= ': '&=',
-	' ^= ': '^=',
-	' |= ': '|=',
-	' <<= ': '<<=',
-	' >>= ': '>>=',
-	' = ': '='
+	' * ':		'*', 
+	' / ':		'/', 
+	' % ':		'%', 
+	' + ':		'+', 
+	' - ':		'-', 
+	' << ':		'<<', 
+	' >> ':		'>>', 
+	' < ':		'<', 
+	' <= ':		'<=', 
+	' > ':		'>', 
+	' >= ':		'>=', 
+	' == ':		'==', 
+	' != ':		'!=', 
+	' & ':		'&', 
+	' ^ ':		'^', 
+	' | ':		'|', 
+	' && ':		'&&', 
+	' || ':		'||', 
+	' ? ':		'?', 
+	' : ':		':', 
+	' += ':		'+=',
+	' -= ':		'-=',
+	' *= ':		'*=',
+	' /= ':		'/=',
+	' %= ':		'%=',
+	' &= ':		'&=',
+	' ^= ':		'^=',
+	' |= ':		'|=',
+	' <<= ':	'<<=',
+	' >>= ':	'>>=',
+	' = ':		'='
 }
-
 
 '''
  Clase de Lexer utilizado para el comentario inicial que debe dar el alumno.
@@ -149,8 +168,8 @@ class CEldaLexer(Lexer):
 		Se buscara que antes de cada funcion se agrege un comentario. Esto sera parte
 		del output grafico. Ya que seran errores de tipo soft.
 	'''
-	ignore_comentario_simple = r'//.*'
-	ignore_comentario_bloque = r'/\*'
+	ignore_comentario_simple = r'(\t*| ?)//.*'
+	ignore_comentario_bloque = r'(\t*| ?)/\*'
 
 	# Tokens
 	'''
@@ -165,9 +184,9 @@ class CEldaLexer(Lexer):
 	INCREMENT = r'\+\+'
 	DECREMENT = r'--'
 
-	TIMES	= r'\*'
-	DIV		= r'/'
-	MOD		= r'%'
+	TIMES	= r' \* '
+	DIV		= r' / '
+	MOD		= r' % '
 
 	PLUS	= r' \+ '
 	MINUS	= r' - '
@@ -307,12 +326,65 @@ class CEldaLexer(Lexer):
 			t.value = 0
 		return t
 
+	def TIMES(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def DIV(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def MOD(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def PLUS(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def MINUS(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def BITWISE_SHIFT(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
+	def COMPARADOR(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def EQ_NEQ(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def BIT_AND(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def BIT_XOR(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def BIT_OR(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def AND(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def OR(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def TERNARIOPT1(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
+
+	def TERNARIOPT2(self, t):
+		t.value = eliminaEspacios[t.value]
+		return t
 
 	def ASSIGNMENT(self, t):
 		t.value = eliminaEspacios[t.value]

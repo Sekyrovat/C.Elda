@@ -18,8 +18,8 @@ class CEldaParser(Parser):
 
 	precedence = (
 		('right', NEWLINE),
-		#('right', ASSIGNMENT),
-		#('right', TERNARIOPT1, TERNARIOPT2),
+		# ('right', ASSIGNMENT),
+		# ('right', TERNARIOPT1, TERNARIOPT2),
 		# ('left', OR),
 		# ('left', AND),
 		# ('left', BIT_OR),
@@ -44,7 +44,14 @@ class CEldaParser(Parser):
 		self.contadorTemporales = 0
 		self.dirVariables = 5000
 
-	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion')
+	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes                           bloqueDeclaracionFunciones MAIN cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes                                                      MAIN cuerpoFuncion',
+	   'comentarioInicial                             bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
+	   'comentarioInicial                             bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
+	   'comentarioInicial                                                       bloqueDeclaracionFunciones MAIN cuerpoFuncion',
+	   'comentarioInicial                                                                                  MAIN cuerpoFuncion')
 	def programa(self, p):
 		print("Success!")
 		print(self.tablaConstantes)
@@ -57,14 +64,10 @@ class CEldaParser(Parser):
 	def comentarioInicial(self, p):
 		pass
 
-	@_('COMENTARIO_SIMPLE CONTENIDO_COMENTARIO NEWLINE COMENTARIO_SIMPLE comentarioInicialSimple2')
+	@_('COMENTARIO_SIMPLE CONTENIDO_COMENTARIO NEWLINE comentarioInicialSimple',
+	   'COMENTARIO_SIMPLE NEWLINE comentarioInicialSimple',
+	   'COMENTARIO_SIMPLE MATRICULA newlines')
 	def comentarioInicialSimple(self, p):
-		pass
-
-	@_('CONTENIDO_COMENTARIO NEWLINE COMENTARIO_SIMPLE comentarioInicialSimple2',
-	   'NEWLINE COMENTARIO_SIMPLE comentarioInicialSimple2',
-	   'MATRICULA newlines')
-	def comentarioInicialSimple2(self, p):
 		pass
 
 	@_('INICIO_COMENTARIO_BLOQUE contenidoComentarioBloque newlines')
@@ -86,8 +89,8 @@ class CEldaParser(Parser):
 	def contenidoComentarioBloque3(self, p):
 		pass
 
-	@_('CONST SPACE declaracionConstante ";" newlines bloqueDeclaracionConstantes',
-	   'empty')
+	@_('bloqueDeclaracionConstantes CONST SPACE declaracionConstante ";" newlines',
+	   'CONST SPACE declaracionConstante ";" newlines')
 	def bloqueDeclaracionConstantes(self, p):
 		pass
 
@@ -99,19 +102,19 @@ class CEldaParser(Parser):
 	def declaracionConstante(self, p):
 		self.tablaConstantes.agregarATabla(p[2], p[0], p[4])
 
-	@_('declaracionVariable ";" newlines bloqueDeclaracionGlobales',
-	   'empty')
+	@_('bloqueDeclaracionGlobales declaracionVariable ";" newlines',
+	   'declaracionVariable ";" newlines')
 	def bloqueDeclaracionGlobales(self, p):
 		pass
 
-	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos bloqueDeclaracionFunciones2 bloqueDeclaracionFunciones',
-	   'empty')
+	@_('bloqueDeclaracionFunciones declaracionFuncion',
+	   'declaracionFuncion')
 	def bloqueDeclaracionFunciones(self, p):
 		pass
 
-	@_('cuerpoFuncion newlines',
-	   '";" newlines')
-	def bloqueDeclaracionFunciones2(self, p):
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
+	   'FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
+	def declaracionFuncion(self):
 		pass
 
 	@_('VOID',
@@ -133,12 +136,13 @@ class CEldaParser(Parser):
 	def declaracionArgumentos2(self, p):
 		pass
 
-	@_('NEWLINE "{" NEWLINE bloqueDeclaracionVariables statements "}" NEWLINE')
+	@_('NEWLINE "{" newlines bloqueDeclaracionVariables statements "}" NEWLINE',
+	   'NEWLINE "{" newlines statements "}" NEWLINE')
 	def cuerpoFuncion(self, p):
 		pass
 
-	@_('declaracionVariable ";" newlines bloqueDeclaracionVariables',
-	   'empty')
+	@_('bloqueDeclaracionVariables tabs declaracionVariable ";" newlines',
+	   'tabs declaracionVariable ";" newlines')
 	def bloqueDeclaracionVariables(self, p):
 		pass
 
@@ -277,13 +281,13 @@ class CEldaParser(Parser):
 		self.tablaVariables.agregarATabla(p.STMATID, 'string', self.dirVariables, p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
-	@_('ENTERO',
-	   'INCONID')
+	@_('ENTERO')
 	def tamano(self, p):
-		try:
-			return self.tablaConstantes.getValor(p.INCONID)[2]
-		except KeyError:
-			return p[0]
+		return p.ENTERO
+
+	@_('INCONID')
+	def tamano(self, p):
+		return self.tablaConstantes.getValor(p.INCONID)
 
 	@_('FILA SPACE declaracionFila2')
 	def declaracionFila(self, p):
@@ -336,39 +340,59 @@ class CEldaParser(Parser):
 	def condicionalIf2(self, p):
 		pass
 
-	@_('SWITCH parentesis NEWLINE tabs "{" NEWLINE tabs cases "}" newlines')
+	@_('SWITCH parentesis NEWLINE tabs "{" NEWLINE cases tabs "}" newlines')
 	def condicionalSwitch(self, p):
 		pass
 
-	@_('CASE SPACE literalOConstante ":" NEWLINE statements tabs cases2')
+	@_('tabs CASE SPACE literalOConstante ":" NEWLINE statements cases',
+	   'tabs CASE SPACE DEFAULT ":" NEWLINE statements')
 	def cases(self, p):
-		pass
-
-	@_('CASE SPACE literalOConstante ":" NEWLINE statements tabs cases2',
-	   'CASE SPACE DEFAULT ":" NEWLINE statements tabs')
-	def cases2(self, p):
 		pass
 
 	@_('literal',
 	   'constante')
 	def literalOConstante(self, p):
-		return (p[0], 'v')
+		return ('v',) + p[0]
 		
-	@_('A_BOOLEAN',
-	   'DECIMAL',
-	   'ENTERO',
-	   'A_CHAR',
-	   'A_STRING')
+	@_('A_BOOLEAN')
 	def literal(self, p):
-		return p[0]
+		return (p.A_BOOLEAN, 'bool')
 
-	@_('BOCONID',
-	   'FLCONID',
-	   'INCONID',
-	   'CHCONID',
-	   'STCONID')
+	@_('DECIMAL')
+	def literal(self, p):
+		return (p.DECIMAL, 'float')
+
+	@_('ENTERO')
+	def literal(self, p):
+		return (p.ENTERO, 'int')
+
+	@_('A_CHAR')
+	def literal(self, p):
+		return (p.A_CHAR, 'char')
+
+	@_('A_STRING')
+	def literal(self, p):
+		return (p.A_STRING, 'string')
+
+	@_('BOCONID')
 	def constante(self, p):
-		return self.tablaConstantes.getValor(p[0])[2]
+		return (self.tablaConstantes.getValor(p.BOCONID), 'bool')
+
+	@_('FLCONID')
+	def constante(self, p):
+		return (self.tablaConstantes.getValor(p.FLCONID), 'float')
+
+	@_('INCONID')
+	def constante(self, p):
+		return (self.tablaConstantes.getValor(p.INCONID), 'int')
+
+	@_('CHCONID')
+	def constante(self, p):
+		return (self.tablaConstantes.getValor(p.CHCONID), 'char')
+
+	@_('STCONID')
+	def constante(self, p):
+		return (self.tablaConstantes.getValor(p.STCONID), 'string')
 
 	@_('FOR "(" asignacion ";" asignacion ";" asignacion ")" corchetes')
 	def cicloFor(self, p):
@@ -447,44 +471,43 @@ class CEldaParser(Parser):
 		if len(p) == 3:
 			operandoDerecho = p.exp
 			operandoIzquierdo = p.termino
-			#tipo = cuboSemantico.verificaSemantica2Operandos('+', operandoIzquierdo[1], operandoDerecho[1])
-			#if tipo != 'error':
-			resultado = (self.contadorTemporales, 't')
-			self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
-			self.contadorTemporales += 1
-			self.contadorCuadruplos += 1
-			return resultado
+			tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzquierdo[2], operandoDerecho[2])
+			if tipo != 'error':
+				resultado = ('t', self.contadorTemporales, tipo)
+				self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
+				self.contadorTemporales += 1
+				self.contadorCuadruplos += 1
+				return resultado
 		return p.termino
 
-	@_('termino SPACE TIMES SPACE factor',
-	   'termino SPACE DIV SPACE factor',
-	   'termino SPACE MOD SPACE factor',
+	@_('termino TIMES factor',
+	   'termino DIV factor',
+	   'termino MOD factor',
 	   'factor')
 	def termino(self, p):
-		if len(p) == 5:
+		if len(p) == 3:
 			operandoDerecho = p.factor
 			operandoIzquierdo = p.termino
-			#tipo = cuboSemantico.verificaSemantica2Operandos('+', operandoIzquierdo[1], operandoDerecho[1])
-			#if tipo != 'error':
-			resultado = (self.contadorTemporales, 't')
-			self.cuadruplos.generaCuadruplo(p[2], operandoIzquierdo, operandoDerecho, resultado)
-			self.contadorTemporales += 1
-			self.contadorCuadruplos += 1
-			return resultado
+			tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzquierdo[2], operandoDerecho[2])
+			if tipo != 'error':
+				resultado = ('t', self.contadorTemporales, tipo)
+				self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
+				self.contadorTemporales += 1
+				self.contadorCuadruplos += 1
+				return resultado
 		return p.factor
 
 	@_('unidad',
-	   'operacionUnaria')
+	   '"+" unidad')
 	def factor(self, p):
-		return p[0]
+		return p.unidad
 
 	@_('"!" unidad',
 	   '"~" unidad',
-	   '"+" unidad',
 	   '"-" unidad',
 	   'INCREMENT unidad',
 	   'DECREMENT unidad')
-	def operacionUnaria(self, p):
+	def factor(self, p):
 		return p[1]
 
 	@_('id',
@@ -494,7 +517,6 @@ class CEldaParser(Parser):
 	   'parentesis',
 	   'literalOConstante')
 	def unidad(self, p):
-		self.pilaOperandos.append(p[0])
 		return p[0]
 
 	@_('"(" asignacion ")"')
@@ -505,31 +527,67 @@ class CEldaParser(Parser):
 	   'idArr',
 	   'idMat')
 	def id(self, p):
-		return (p[0], 'd')
+		return ('d',) + p[0]
 
-	@_('BOID',
-	   'FLID',
-	   'INID',
-	   'CHID',
-	   'STID')
+	@_('BOID')
 	def idSencillo(self, p):
-		return self.tablaVariables.conseguirDireccion(p[0])
+		return (self.tablaVariables.conseguirDireccion(p.BOID), 'bool')
 
-	@_('BOARRID "[" asignacion "]"',
-	   'FLARRID "[" asignacion "]"',
-	   'INARRID "[" asignacion "]"',
-	   'CHARRID "[" asignacion "]"',
-	   'STARRID "[" asignacion "]"')
+	@_('FLID')
+	def idSencillo(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.FLID), 'float')
+
+	@_('INID')
+	def idSencillo(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.INID), 'int')
+
+	@_('CHID')
+	def idSencillo(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.CHID), 'char')
+
+	@_('STID')
+	def idSencillo(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.STID), 'string')
+
+	@_('BOARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return self.tablaVariables.conseguirDireccion(p[0], p.asignacion[0])
+		return (self.tablaVariables.conseguirDireccion(p.BOARRID, p.asignacion[1]), 'bool')
 
-	@_('BOMATID "[" asignacion "]" "[" asignacion "]"',
-	   'FLMATID "[" asignacion "]" "[" asignacion "]"',
-	   'INMATID "[" asignacion "]" "[" asignacion "]"',
-	   'CHMATID "[" asignacion "]" "[" asignacion "]"',
-	   'STMATID "[" asignacion "]" "[" asignacion "]"')
+	@_('FLARRID "[" asignacion "]"')
+	def idArr(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.FLARRID, p.asignacion[1]), 'float')
+
+	@_('INARRID "[" asignacion "]"')
+	def idArr(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.INARRID, p.asignacion[1]), 'int')
+
+	@_('CHARRID "[" asignacion "]"')
+	def idArr(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.CHARRID, p.asignacion[1]), 'char')
+
+	@_('STARRID "[" asignacion "]"')
+	def idArr(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.STARRID, p.asignacion[1]), 'string')
+
+	@_('BOMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return self.tablaVariables.conseguirDireccion(p[0], p.asignacion0[0], p.asignacion1[0])
+		return (self.tablaVariables.conseguirDireccion(p.BOMATID, p.asignacion0[1], p.asignacion1[1]), 'bool')
+
+	@_('FLMATID "[" asignacion "]" "[" asignacion "]"')
+	def idMat(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.FLMATID, p.asignacion0[1], p.asignacion1[1]), 'float')
+
+	@_('INMATID "[" asignacion "]" "[" asignacion "]"')
+	def idMat(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.INMATID, p.asignacion0[1], p.asignacion1[1]), 'int')
+
+	@_('CHMATID "[" asignacion "]" "[" asignacion "]"')
+	def idMat(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.CHMATID, p.asignacion0[1], p.asignacion1[1]), 'char')
+
+	@_('STMATID "[" asignacion "]" "[" asignacion "]"')
+	def idMat(self, p):
+		return (self.tablaVariables.conseguirDireccion(p.STMATID, p.asignacion0[1], p.asignacion1[1]), 'string')
 
 	@_('IDFUNCION "(" argumentos',
 	   'READ "(" ")"',
