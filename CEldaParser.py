@@ -114,7 +114,7 @@ class CEldaParser(Parser):
 
 	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
 	   'FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
-	def declaracionFuncion(self):
+	def declaracionFuncion(self, p):
 		pass
 
 	@_('VOID',
@@ -330,12 +330,12 @@ class CEldaParser(Parser):
 	def statement(self, p):
 		pass
 
-	@_('IF parentesis corchetes condicionalIf2')
+	@_('IF SPACE parentesis corchetes NEWLINE condicionalIf2')
 	def condicionalIf(self, p):
 		pass
 
-	@_('ELSEIF parentesis corchetes condicionalIf2',
-	   'ELSE corchetes',
+	@_('ELSEIF SPACE parentesis corchetes NEWLINE condicionalIf2',
+	   'ELSE corchetes NEWLINE',
 	   'empty')
 	def condicionalIf2(self, p):
 		pass
@@ -402,121 +402,250 @@ class CEldaParser(Parser):
 	def cicloWhile(self, p):
 		pass
 
-	@_('DO corchetes WHILE parentesis')
+	@_('DO corchetes NEWLINE WHILE parentesis')
 	def cicloDo(self, p):
 		pass
 
-	@_('NEWLINE "{" NEWLINE statements "}" newlines')
+	@_('NEWLINE tabs "{" NEWLINE statements tabs "}"')
 	def corchetes(self, p):
 		pass
 
-	@_('id ASSIGNMENT asignacion',
-	   'ternario')
+	@_('id ASSIGNMENT asignacion')
 	def asignacion(self, p):
-		try:
-			self.cuadruplos.generaCuadruplo(p.ASSIGNMENT, p.asignacion, None, p.id)
-			self.contadorCuadruplos += 1
-		except KeyError:
-			return p.ternario
+		self.cuadruplos.generaCuadruplo(p.ASSIGNMENT, p.asignacion, None, p.id)
+		self.contadorCuadruplos += 1
+		return p.id
 
-	@_('logicOr TERNARIOPT1 ternario TERNARIOPT2 ternario',
-	   'logicOr')
+	@_('ternario')
+	def asignacion(self, p):
+		return p.ternario
+
+	@_('logicOr TERNARIOPT1 ternario TERNARIOPT2 ternario')
 	def ternario(self, p):
-		return p[0]
+		# operandoIzq = p.eqComparisson
+		# operandoDer = p.comparisson
+		# tipo = cuboSemantico.verificaSemantica2Operandos(p.BITWISE_SHIFT, operandoIzq[2], operandoDer[2])
+		# if tipo == 'error':
+		# 	print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BITWISE_SHIFT)
+		# resultado = ('t', self.contadorTemporales, tipo)
+		# self.cuadruplos.generaCuadruplo(p.BITWISE_SHIFT, operandoIzq, operandoDer, resultado)
+		# self.contadorTemporales += 1
+		# self.contadorCuadruplos += 1
+		return p.logicOr #resultado
 
-	@_('logicOr OR logicAnd',
-	   'logicAnd')
+	@_('logicOr')
+	def ternario(self, p):
+		return p.logicOr
+
+	@_('logicOr OR logicAnd')
 	def logicOr(self, p):
-		return p[0]
+		operandoIzq = p.logicOr
+		operandoDer = p.logicAnd
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.OR, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.OR)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.OR, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('logicAnd AND bitwiseOr',
-	   'bitwiseOr')
+	@_('logicAnd')
+	def logicOr(self, p):
+		return p.logicAnd
+
+	@_('logicAnd AND bitwiseOr')
 	def logicAnd(self, p):
-		return p[0]
+		operandoIzq = p.logicAnd
+		operandoDer = p.bitwiseOr
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.AND, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.AND)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.AND, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('bitwiseOr BIT_OR bitwiseXor',
-	   'bitwiseXor')
+	@_('bitwiseOr')
+	def logicAnd(self, p):
+		return p.bitwiseOr
+
+	@_('bitwiseOr BIT_OR bitwiseXor')
 	def bitwiseOr(self, p):
-		return p[0]
+		operandoIzq = p.bitwiseOr
+		operandoDer = p.bitwiseXor
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_OR, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_OR)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.BIT_OR, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('bitwiseXor BIT_XOR bitwiseAnd',
-	   'bitwiseAnd')
+	@_('bitwiseXor')
+	def bitwiseOr(self, p):
+		return p.bitwiseXor
+
+	@_('bitwiseXor BIT_XOR bitwiseAnd')
 	def bitwiseXor(self, p):
-		return p[0]
+		operandoIzq = p.bitwiseXor
+		operandoDer = p.bitwiseAnd
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_XOR, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_XOR)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.BIT_XOR, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('bitwiseAnd BIT_AND eqComparisson',
-	   'eqComparisson')
+	@_('bitwiseAnd')
+	def bitwiseXor(self, p):
+		return p.bitwiseAnd
+
+	@_('bitwiseAnd BIT_AND eqComparisson')
 	def bitwiseAnd(self, p):
-		return p[0]
+		operandoIzq = p.bitwiseAnd
+		operandoDer = p.eqComparisson
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_AND, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_AND)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.BIT_AND, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('eqComparisson EQ_NEQ comparisson',
-	   'comparisson')
+	@_('eqComparisson')
+	def bitwiseAnd(self, p):
+		return p.eqComparisson
+
+	@_('eqComparisson EQ_NEQ comparisson')
 	def eqComparisson(self, p):
-		return p[0]
+		operandoIzq = p.eqComparisson
+		operandoDer = p.comparisson
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.EQ_NEQ, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.EQ_NEQ)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.EQ_NEQ, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('comparisson COMPARADOR shift',
-	   'shift')
+	@_('comparisson')
+	def eqComparisson(self, p):
+		return p.comparisson
+
+	@_('comparisson COMPARADOR shift')
 	def comparisson(self, p):
-		return p[0]
+		operandoIzq = p.comparisson
+		operandoDer = p.shift
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.COMPARADOR, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.COMPARADOR)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.COMPARADOR, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
 
-	@_('shift BITWISE_SHIFT exp',
-	   'exp')
+	@_('shift')
+	def comparisson(self, p):
+		return p.shift
+
+	@_('shift BITWISE_SHIFT exp')
 	def shift(self, p):
-		return p[0]
+		operandoIzq = p.shift
+		operandoDer = p.exp
+		tipo = cuboSemantico.verificaSemantica2Operandos(p.BITWISE_SHIFT, operandoIzq[2], operandoDer[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BITWISE_SHIFT)
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.cuadruplos.generaCuadruplo(p.BITWISE_SHIFT, operandoIzq, operandoDer, resultado)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return resultado
+
+	@_('exp')
+	def shift(self, p):
+		return p.exp
 
 	@_('exp PLUS termino',
-	   'exp MINUS termino',
-	   'termino')
+	   'exp MINUS termino')
 	def exp(self, p):
-		if len(p) == 3:
-			operandoDerecho = p.exp
-			operandoIzquierdo = p.termino
-			tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzquierdo[2], operandoDerecho[2])
-			if tipo != 'error':
-				resultado = ('t', self.contadorTemporales, tipo)
-				self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
-				self.contadorTemporales += 1
-				self.contadorCuadruplos += 1
-				return resultado
+		operandoIzq = p.exp
+		operandoDer = p.termino
+		tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzq[2], operandoDer[2])
+		if tipo != 'error':
+			resultado = ('t', self.contadorTemporales, tipo)
+			self.cuadruplos.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
+			self.contadorTemporales += 1
+			self.contadorCuadruplos += 1
+			return resultado
+
+	@_('termino')
+	def exp(self, p):
 		return p.termino
 
 	@_('termino TIMES factor',
 	   'termino DIV factor',
-	   'termino MOD factor',
-	   'factor')
+	   'termino MOD factor')
 	def termino(self, p):
-		if len(p) == 3:
-			operandoDerecho = p.factor
-			operandoIzquierdo = p.termino
-			tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzquierdo[2], operandoDerecho[2])
-			if tipo != 'error':
-				resultado = ('t', self.contadorTemporales, tipo)
-				self.cuadruplos.generaCuadruplo(p[1], operandoIzquierdo, operandoDerecho, resultado)
-				self.contadorTemporales += 1
-				self.contadorCuadruplos += 1
-				return resultado
+		operandoIzq = p.termino
+		operandoDer = p.factor
+		tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzq[2], operandoDer[2])
+		if tipo != 'error':
+			resultado = ('t', self.contadorTemporales, tipo)
+			self.cuadruplos.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
+			self.contadorTemporales += 1
+			self.contadorCuadruplos += 1
+			return resultado
+
+	@_('factor')
+	def termino(self, p):
 		return p.factor
 
 	@_('unidad',
 	   '"+" unidad')
 	def factor(self, p):
+		if len(p) == 2:
+			#mandar mensaje + unario innecesario
+			pass
 		return p.unidad
+
+	@_('INCREMENT unidad',
+	   'DECREMENT unidad')
+	def factor(self, p):
+		self.cuadruplos.generaCuadruplo(p[0][0], p.unidad, ('v', 1, 'int'), p.unidad)
+		self.contadorCuadruplos += 1
+		return p[1]
 
 	@_('"!" unidad',
 	   '"~" unidad',
-	   '"-" unidad',
-	   'INCREMENT unidad',
-	   'DECREMENT unidad')
+	   '"-" unidad')
 	def factor(self, p):
-		return p[1]
+		tipo = cuboSemantico.verificaSemantica1Operando(p[0], p.unidad[2])
+		if tipo != 'error':
+			resultado = ('t', self.contadorTemporales, tipo)
+			self.cuadruplos.generaCuadruplo(p[0], p.unidad, None, resultado)
+			self.contadorTemporales += 1
+			self.contadorCuadruplos += 1
+			return resultado
 
 	@_('id',
-	   'id INCREMENT %prec POSTINCDEC',
-	   'id DECREMENT %prec POSTINCDEC',
 	   'llamadaFuncion',
 	   'parentesis',
 	   'literalOConstante')
 	def unidad(self, p):
+		return p[0]
+
+	@_('id INCREMENT %prec POSTINCDEC',
+	   'id DECREMENT %prec POSTINCDEC')
+	def unidad(self, p):
+		# logica para incremento post
 		return p[0]
 
 	@_('"(" asignacion ")"')
