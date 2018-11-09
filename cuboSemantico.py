@@ -8,15 +8,15 @@ cuboTernario = {
 	},
 	'char' : {
 		'int' 	: 'int',
-		'char' 	: 'int',
-		'bool' 	: 'int',
+		'char' 	: 'char',
+		'bool' 	: 'char',
 		'float' : 'float',
 		'string': 'error'
 	},
 	'bool' : {
 		'int' 	: 'int',
-		'char' 	: 'int',
-		'bool' 	: 'int',
+		'char' 	: 'char',
+		'bool' 	: 'bool',
 		'float' : 'float',
 		'string': 'error'
 	},
@@ -803,4 +803,4 @@ def verificaSemantica1Operando(operacion, operando):
 	return cubo1Operando[operacion][operando]
 
 def verificaSemanticaTernario(izq, der):
-	return cubo1Operando[izq][der]
+	return cuboTernario[izq][der]

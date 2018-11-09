@@ -159,7 +159,7 @@ class CEldaLexer(Lexer):
 			  WHILE, FOR, BREAK, CONTINUE, RETURN, READ, WRITE, COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE,
 			  CONTENIDO_COMENTARIO, MATRICULA, FIN_COMENTARIO_BLOQUE}
 	# Aqui declaramos las literales que se usaran.
-	literals = {',', ';', '{', '}', '(', ')', '+', '-', '!', '~', '[', ']'}
+	literals = {',', ':', ';', '{', '}', '(', ')', '+', '-', '!', '~', '[', ']'}
 	# ignore = ' \t'
 
 	# Ignored pattern

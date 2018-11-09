@@ -17,6 +17,7 @@ class CEldaParser(Parser):
 	tokens = CEldaLexer.tokens
 
 	precedence = (
+		('right', MNEWLINES),
 		('right', NEWLINE),
 		# ('right', ASSIGNMENT),
 		# ('right', TERNARIOPT1, TERNARIOPT2),
@@ -38,8 +39,8 @@ class CEldaParser(Parser):
 		self.tablaConstantes = TablaConstantes()
 		self.tablaVariables = TablaVariables()
 		self.cuadruplos = Cuadruplos()
-		self.pilaOperandos = []
-		self.pilaOperadores = []
+		self.pilaSaltosPendientes = []
+		self.pilaAuxTernario = []
 		self.contadorCuadruplos = 0
 		self.contadorTemporales = 0
 		self.dirVariables = 5000
@@ -330,22 +331,41 @@ class CEldaParser(Parser):
 	def statement(self, p):
 		pass
 
-	@_('IF SPACE parentesis corchetes NEWLINE condicionalIf2')
+	@_('condicionIf corchetes SPACE elseif SPACE condicionalIf')
 	def condicionalIf(self, p):
 		pass
 
-	@_('ELSEIF SPACE parentesis corchetes NEWLINE condicionalIf2',
-	   'ELSE corchetes NEWLINE',
-	   'empty')
-	def condicionalIf2(self, p):
-		pass
+	@_('condicionIf corchetes SPACE elseFinal corchetes',
+	   'condicionIf corchetes')
+	def condicionalIf(self, p):
+		saltoPendiente = self.pilaSaltosPendientes.pop()
+		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 
-	@_('SWITCH parentesis NEWLINE tabs "{" NEWLINE cases tabs "}" newlines')
+	@_('IF SPACE parentesis')
+	def condicionIf(self, p):
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.cuadruplos.generaCuadruplo('GoToF', p.parentesis, None, -1)
+		self.contadorCuadruplos += 1
+
+	@_('ELSE')
+	def elseif(self, p):
+		saltoPendiente = self.pilaSaltosPendientes.pop()
+		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
+
+	@_('ELSE')
+	def elseFinal(self, p):
+		saltoPendiente = self.pilaSaltosPendientes.pop()
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.cuadruplos.generaCuadruplo('GoTo', None, None, -1)
+		self.contadorCuadruplos += 1
+		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
+
+	@_('SWITCH SPACE parentesis NEWLINE tabs "{" NEWLINE cases tabs "}"')
 	def condicionalSwitch(self, p):
 		pass
 
 	@_('tabs CASE SPACE literalOConstante ":" NEWLINE statements cases',
-	   'tabs CASE SPACE DEFAULT ":" NEWLINE statements')
+	   'tabs DEFAULT ":" NEWLINE statements')
 	def cases(self, p):
 		pass
 
@@ -402,11 +422,11 @@ class CEldaParser(Parser):
 	def cicloWhile(self, p):
 		pass
 
-	@_('DO corchetes NEWLINE WHILE parentesis')
+	@_('DO corchetes SPACE WHILE parentesis')
 	def cicloDo(self, p):
 		pass
 
-	@_('NEWLINE tabs "{" NEWLINE statements tabs "}"')
+	@_('NEWLINE tabs "{" newlines statements tabs "}"')
 	def corchetes(self, p):
 		pass
 
@@ -420,22 +440,47 @@ class CEldaParser(Parser):
 	def asignacion(self, p):
 		return p.ternario
 
-	@_('logicOr TERNARIOPT1 ternario TERNARIOPT2 ternario')
+	@_('condicionYOpTernario1 ternarioYOpTernario2 ternario')
 	def ternario(self, p):
-		# operandoIzq = p.eqComparisson
-		# operandoDer = p.comparisson
-		# tipo = cuboSemantico.verificaSemantica2Operandos(p.BITWISE_SHIFT, operandoIzq[2], operandoDer[2])
-		# if tipo == 'error':
-		# 	print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BITWISE_SHIFT)
-		# resultado = ('t', self.contadorTemporales, tipo)
-		# self.cuadruplos.generaCuadruplo(p.BITWISE_SHIFT, operandoIzq, operandoDer, resultado)
-		# self.contadorTemporales += 1
-		# self.contadorCuadruplos += 1
-		return p.logicOr #resultado
+		tipo = cuboSemantico.verificaSemanticaTernario(p.ternarioYOpTernario2[2], p.ternario[2])
+		if tipo == 'error':
+			print('Error: type mismatch in line:', p.lineno, 'with ternary operator')
+		direccionFinTernario1 = self.pilaAuxTernario.pop()
+		resultado = self.pilaAuxTernario.pop()[0:2] + (tipo,)
+		self.cuadruplos.rellena(direccionFinTernario1, resultado)
+		saltoPendiente = self.pilaSaltosPendientes.pop()
+		self.cuadruplos.generaCuadruplo('=', p.ternario, None, resultado)
+		self.contadorCuadruplos += 1
+		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
+		return resultado
 
 	@_('logicOr')
 	def ternario(self, p):
 		return p.logicOr
+
+	@_('logicOr TERNARIOPT1')
+	def condicionYOpTernario1(self, p):
+		if p.logicOr[2] == 'string':
+			print('Error: type mismatch in line:', p.lineno, 'ternary operators can\'t choose based on a string')
+		self.pilaAuxTernario.append(('t', self.contadorTemporales, 'pendiente'))
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.cuadruplos.generaCuadruplo('GoToF', p.logicOr, None, -1)
+		self.contadorTemporales += 1
+		self.contadorCuadruplos += 1
+		return p.logicOr
+
+	@_('ternario TERNARIOPT2')
+	def ternarioYOpTernario2(self, p):
+		resultado = self.pilaAuxTernario[-1]
+		saltoPendiente = self.pilaSaltosPendientes.pop()
+		self.pilaAuxTernario.append(self.contadorCuadruplos)
+		self.cuadruplos.generaCuadruplo('=', p.ternario, None, resultado)
+		self.contadorCuadruplos += 1
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.cuadruplos.generaCuadruplo('GoTo', None, None, -1)
+		self.contadorCuadruplos += 1
+		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
+		return p.ternario
 
 	@_('logicOr OR logicAnd')
 	def logicOr(self, p):
@@ -746,8 +791,8 @@ class CEldaParser(Parser):
 	def estatutoBreak(self, p):
 		pass
 
-	@_('NEWLINE newlines',
-	   'NEWLINE')
+	@_('NEWLINE newlines %prec MNEWLINES',
+	   'NEWLINE %prec MNEWLINES')
 	def newlines(self, p):
 		pass
 
