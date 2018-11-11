@@ -1,3 +1,9 @@
+#!/usr/bin/python3.7
+#
+# cuboSemantico.py
+# Sergio López Madriz A01064725
+# Héctor Hernández Morales A00816446
+
 cuboTernario = {
 	'int' : {
 		'int' 	: 'int',

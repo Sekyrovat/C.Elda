@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3.7
 #
-# CEldaParser.py
+# nodoDimension.py
 # Sergio López Madriz A01064725
 # Héctor Hernández Morales A00816446
 

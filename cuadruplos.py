@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3.7
 #
 # cuadruplos.py
 # Sergio López Madriz A01064725
