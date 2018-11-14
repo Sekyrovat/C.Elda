@@ -414,8 +414,12 @@ class CEldaParser(Parser):
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.STCONID), 'string')
 
-	@_('FOR "(" asignacion ";" asignacion ";" asignacion ")" corchetes')
+	@_('FOR "(" inicializacionFor ";" asignacion ";" asignacion ")" corchetes')
 	def cicloFor(self, p):
+		pass
+
+	@_('asignacion')
+	def inicializacionFor(self, p):
 		pass
 
 	@_('WHILE parentesis corchetes')

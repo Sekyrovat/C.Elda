@@ -8,6 +8,7 @@ class Cuadruplos(object):
 	"""docstring for Cuadruplos"""
 	def __init__(self):
 		self.cuadruplos = []
+		self.actualizacionFor = []
 	
 	def generaCuadruplo(self, operacion, operando1, operando2, resultado):
 		self.cuadruplos.append((operacion, operando1, operando2, resultado))
