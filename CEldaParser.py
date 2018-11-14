@@ -41,9 +41,31 @@ class CEldaParser(Parser):
 		self.cuadruplos = Cuadruplos()
 		self.pilaSaltosPendientes = []
 		self.pilaAuxTernario = []
+		self.pilaAuxSwitch = []
 		self.contadorCuadruplos = 0
 		self.contadorTemporales = 0
+		self.nivelDeEspera = 0
 		self.dirVariables = 5000
+
+	def agregaCapaEspera(self):
+		self.cuadruplos.agregaCapaEspera()
+		self.nivelDeEspera += 1
+
+	def liberaEspera(self):
+		self.contadorCuadruplos += self.cuadruplos.liberaEspera()
+		self.nivelDeEspera -= 1
+
+	def generaCuadruplo(self, operacion, operando1, operando2, resultado):
+		if self.nivelDeEspera:
+			self.cuadruplos.generaEnEspera(operacion, operando1, operando2, resultado)
+		else:
+			self.cuadruplos.generaCuadruplo(operacion, operando1, operando2, resultado)
+			self.contadorCuadruplos += 1
+
+	def generaTemporal(self, tipo):
+		resultado = ('t', self.contadorTemporales, tipo)
+		self.contadorTemporales += 1
+		return resultado
 
 	##################################################################
 	##################################################################
@@ -60,6 +82,7 @@ class CEldaParser(Parser):
 	   'comentarioInicial                                                       bloqueDeclaracionFunciones MAIN cuerpoFuncion',
 	   'comentarioInicial                                                                                  MAIN cuerpoFuncion')
 	def programa(self, p):
+		self.generaCuadruplo('EXIT', None, None, None)
 		print("Success!")
 		print(self.tablaConstantes)
 		print(self.tablaVariables)
@@ -366,14 +389,31 @@ class CEldaParser(Parser):
 		self.contadorCuadruplos += 1
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 
-	@_('SWITCH SPACE parentesis NEWLINE tabs "{" NEWLINE cases tabs "}"')
+	@_('SWITCH SPACE condicionSwitch NEWLINE tabs "{" NEWLINE cases tabs "}"')
 	def condicionalSwitch(self, p):
 		pass
 
-	@_('tabs CASE SPACE literalOConstante ":" NEWLINE statements cases',
-	   'tabs DEFAULT ":" NEWLINE statements')
+	@_('parentesis')
+	def condicionSwitch(self, p):
+		self.pilaAuxSwitch.append(p.parentesis)
+		self.agregaCapaEspera()
+		self.nivelDeEspera -= 1
+		return p.parentesis
+
+	@_('tabs CASE SPACE condicionCase ":" NEWLINE statements cases')
 	def cases(self, p):
 		pass
+
+	@_('tabs DEFAULT ":" NEWLINE statements')
+	def cases(self, p):
+		pass
+
+	@_('literalOConstante')
+	def condicionCase(self, p):
+		resultado = self.generaTemporal('bool')
+		self.generaCuadruplo('==', self.pilaAuxSwitch[-1], p.literalOConstante, resultado)
+		self.generaCuadruplo('GoToV', resultado, None, -1)
+		return p.literalOConstante
 
 	@_('literal',
 	   'constante')
@@ -420,21 +460,63 @@ class CEldaParser(Parser):
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.STCONID), 'string')
 
-	@_('FOR "(" inicializacionFor ";" asignacion ";" asignacion ")" corchetes')
+	@_('FOR SPACE "(" inicializacionFor ";" SPACE condicionFor ";" SPACE actualizacionFor ")" corchetes')
 	def cicloFor(self, p):
-		pass
+		self.nivelDeEspera += 1
+		self.liberaEspera()
+		salidaDelFor = self.pilaSaltosPendientes.pop()
+		self.generaCuadruplo('GoTo', None, None, self.pilaSaltosPendientes.pop())
+		self.cuadruplos.rellena(salidaDelFor, self.contadorCuadruplos)
 
 	@_('asignacion')
 	def inicializacionFor(self, p):
-		pass
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		return p.asignacion
 
-	@_('WHILE parentesis corchetes')
+	@_('asignacion')
+	def condicionFor(self, p):
+		if p.asignacion[2] == 'string':
+			print('Error: type mismatch in line:', p.lineno, 'For loops can\'t choose based on a string')
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.generaCuadruplo('GoToF', p.asignacion, None, -1)
+		self.agregaCapaEspera()
+		return p.asignacion
+
+	@_('asignacion')
+	def actualizacionFor(self, p):
+		self.nivelDeEspera -= 1
+		return p.asignacion
+
+	@_('palabraWhile SPACE condicionWhile corchetes')
 	def cicloWhile(self, p):
-		pass
+		salidaDelWhile = self.pilaSaltosPendientes.pop()
+		self.generaCuadruplo('GoTo', None, None, self.pilaSaltosPendientes.pop())
+		self.cuadruplos.rellena(salidaDelWhile, self.contadorCuadruplos)
 
-	@_('DO corchetes SPACE WHILE parentesis')
+	@_('WHILE')
+	def palabraWhile(self, p):
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		return p.WHILE
+
+	@_('parentesis')
+	def condicionWhile(self, p):
+		if p.parentesis[2] == 'string':
+			print('Error: type mismatch in line:', p.lineno, 'While loops can\'t choose based on a string')
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.generaCuadruplo('GoToF', p.parentesis, None, -1)
+		return p.parentesis
+
+	@_('palabraDO corchetes SPACE WHILE SPACE parentesis')
 	def cicloDo(self, p):
-		pass
+		if p.parentesis[2] == 'string':
+			print('Error: type mismatch in line:', p.lineno, 'Do loops can\'t choose based on a string')
+		self.generaCuadruplo('GoToV', p.parentesis, None, self.pilaSaltosPendientes.pop())
+		return p.parentesis
+
+	@_('DO')
+	def palabraDO(self, p):
+		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		return p.DO
 
 	@_('NEWLINE tabs "{" newlines statements tabs "}"')
 	def corchetes(self, p):
@@ -442,8 +524,7 @@ class CEldaParser(Parser):
 
 	@_('id ASSIGNMENT asignacion')
 	def asignacion(self, p):
-		self.cuadruplos.generaCuadruplo(p.ASSIGNMENT, p.asignacion, None, p.id)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo(p.ASSIGNMENT, p.asignacion, None, p.id)
 		return p.id
 
 	@_('ternario')
@@ -459,8 +540,7 @@ class CEldaParser(Parser):
 		resultado = self.pilaAuxTernario.pop()[0:2] + (tipo,)
 		self.cuadruplos.rellena(direccionFinTernario1, resultado)
 		saltoPendiente = self.pilaSaltosPendientes.pop()
-		self.cuadruplos.generaCuadruplo('=', p.ternario, None, resultado)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('=', p.ternario, None, resultado)
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 		return resultado
 
@@ -474,9 +554,7 @@ class CEldaParser(Parser):
 			print('Error: type mismatch in line:', p.lineno, 'ternary operators can\'t choose based on a string')
 		self.pilaAuxTernario.append(('t', self.contadorTemporales, 'pendiente'))
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
-		self.cuadruplos.generaCuadruplo('GoToF', p.logicOr, None, -1)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('GoToF', p.logicOr, None, -1)
 		return p.logicOr
 
 	@_('ternario TERNARIOPT2')
@@ -484,11 +562,9 @@ class CEldaParser(Parser):
 		resultado = self.pilaAuxTernario[-1]
 		saltoPendiente = self.pilaSaltosPendientes.pop()
 		self.pilaAuxTernario.append(self.contadorCuadruplos)
-		self.cuadruplos.generaCuadruplo('=', p.ternario, None, resultado)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('=', p.ternario, None, resultado)
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
-		self.cuadruplos.generaCuadruplo('GoTo', None, None, -1)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('GoTo', None, None, -1)
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 		return p.ternario
 
@@ -499,10 +575,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.OR, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.OR)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.OR, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.OR, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('logicAnd')
@@ -516,10 +590,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.AND, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.AND)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.AND, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.AND, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('bitwiseOr')
@@ -533,10 +605,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_OR, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_OR)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.BIT_OR, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.BIT_OR, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('bitwiseXor')
@@ -550,10 +620,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_XOR, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_XOR)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.BIT_XOR, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.BIT_XOR, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('bitwiseAnd')
@@ -567,10 +635,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.BIT_AND, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BIT_AND)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.BIT_AND, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.BIT_AND, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('eqComparisson')
@@ -584,10 +650,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.EQ_NEQ, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.EQ_NEQ)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.EQ_NEQ, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.EQ_NEQ, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('comparisson')
@@ -601,10 +665,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.COMPARADOR, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.COMPARADOR)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.COMPARADOR, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.COMPARADOR, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('shift')
@@ -618,10 +680,8 @@ class CEldaParser(Parser):
 		tipo = cuboSemantico.verificaSemantica2Operandos(p.BITWISE_SHIFT, operandoIzq[2], operandoDer[2])
 		if tipo == 'error':
 			print('Error: type mismatch in line:', p.lineno, 'with operator ', p.BITWISE_SHIFT)
-		resultado = ('t', self.contadorTemporales, tipo)
-		self.cuadruplos.generaCuadruplo(p.BITWISE_SHIFT, operandoIzq, operandoDer, resultado)
-		self.contadorTemporales += 1
-		self.contadorCuadruplos += 1
+		resultado = self.generaTemporal(tipo)
+		self.generaCuadruplo(p.BITWISE_SHIFT, operandoIzq, operandoDer, resultado)
 		return resultado
 
 	@_('exp')
@@ -635,10 +695,8 @@ class CEldaParser(Parser):
 		operandoDer = p.termino
 		tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzq[2], operandoDer[2])
 		if tipo != 'error':
-			resultado = ('t', self.contadorTemporales, tipo)
-			self.cuadruplos.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
-			self.contadorTemporales += 1
-			self.contadorCuadruplos += 1
+			resultado = self.generaTemporal(tipo)
+			self.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
 			return resultado
 
 	@_('termino')
@@ -653,10 +711,8 @@ class CEldaParser(Parser):
 		operandoDer = p.factor
 		tipo = cuboSemantico.verificaSemantica2Operandos(p[1], operandoIzq[2], operandoDer[2])
 		if tipo != 'error':
-			resultado = ('t', self.contadorTemporales, tipo)
-			self.cuadruplos.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
-			self.contadorTemporales += 1
-			self.contadorCuadruplos += 1
+			resultado = self.generaTemporal(tipo)
+			self.generaCuadruplo(p[1], operandoIzq, operandoDer, resultado)
 			return resultado
 
 	@_('factor')
@@ -674,8 +730,7 @@ class CEldaParser(Parser):
 	@_('INCREMENT unidad',
 	   'DECREMENT unidad')
 	def factor(self, p):
-		self.cuadruplos.generaCuadruplo(p[0][0], p.unidad, ('v', 1, 'int'), p.unidad)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo(p[0][0], p.unidad, ('v', 1, 'int'), p.unidad)
 		return p[1]
 
 	@_('"!" unidad',
@@ -684,10 +739,9 @@ class CEldaParser(Parser):
 	def factor(self, p):
 		tipo = cuboSemantico.verificaSemantica1Operando(p[0], p.unidad[2])
 		if tipo != 'error':
-			resultado = ('t', self.contadorTemporales, tipo)
-			self.cuadruplos.generaCuadruplo(p[0], p.unidad, None, resultado)
+			resultado = self.generaTemporal(tipo)
 			self.contadorTemporales += 1
-			self.contadorCuadruplos += 1
+			self.generaCuadruplo(p[0], p.unidad, None, resultado)
 			return resultado
 
 	@_('id',
