@@ -45,6 +45,12 @@ class CEldaParser(Parser):
 		self.contadorTemporales = 0
 		self.dirVariables = 5000
 
+	##################################################################
+	##################################################################
+	################ Comienzan las reglas de sintaxis ################
+	##################################################################
+	##################################################################
+	
 	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
 	   'comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
 	   'comentarioInicial bloqueDeclaracionConstantes                           bloqueDeclaracionFunciones MAIN cuerpoFuncion',
@@ -808,6 +814,13 @@ class CEldaParser(Parser):
 	@_('')
 	def empty(self, p):
 		pass
+
+	###################################################################
+	###################################################################
+	################# Terminan las reglas de sintaxis #################
+	###################################################################
+	###################################################################
+
 
 if __name__ == '__main__':
 	lexer = CEldaLexer()

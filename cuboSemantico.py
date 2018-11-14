@@ -4,6 +4,12 @@
 # Sergio López Madriz A01064725
 # Héctor Hernández Morales A00816446
 
+
+'''
+	Cubo para manejo de ternarios, donde la primer llave es el operando izquierdo
+	la segunda llave es el operando derecho y el valor sera el tipo de retorno que
+	tenemos.
+'''
 cuboTernario = {
 	'int' : {
 		'int' 	: 'int',
@@ -42,6 +48,10 @@ cuboTernario = {
 	}
 }
 
+'''
+	Cubo para manejo de operaciones de 1 solo operando, donde la primer llave es la operacion
+	la segunda llave es el operando y el valor sera el tipo de retorno que tenemos.
+'''
 cubo1Operando = {
 	'++' : {
 		'int' 	: 'int',
@@ -80,6 +90,11 @@ cubo1Operando = {
 	}
 }
 
+'''
+	Cubo para manejo de operaciones, donde la primer llave es la oepracion que se 
+	desea realizar, la segunda llave es el operando izquierdo asi como la tercera
+	 y el valor sera el tipo de retorno que se dara.
+'''
 cubo2Operandos = {
 	'+' : {
 		'int' : {
@@ -801,6 +816,8 @@ cubo2Operandos = {
 		}
 	}
 }
+
+# Las sigueintes son funciones de acceso
 
 def verificaSemantica2Operandos(operacion, izq, der):
 	return cubo2Operandos[operacion][izq][der]
