@@ -7,7 +7,7 @@
 import sys
 from sly import Parser
 from CEldaLexer import CEldaLexer
-from tablas import TablaConstantes, TablaVariables
+from tablas import TablaConstantes, TablaVariables, TablaModulos
 from cuadruplos import Cuadruplos
 import cuboSemantico
 
@@ -40,6 +40,7 @@ class CEldaParser(Parser):
 	def __init__(self):
 		self.tablaConstantes = TablaConstantes()
 		self.tablaVariables = TablaVariables()
+		self.tablaModulos = TablaModulos()
 		self.cuadruplos = Cuadruplos()
 		self.pilaSaltosPendientes = []
 		self.pilaAuxTernario = []
@@ -97,6 +98,7 @@ class CEldaParser(Parser):
 		print("Success!")
 		print(self.tablaConstantes)
 		print(self.tablaVariables)
+		print(self.tablaModulos)
 		print(self.cuadruplos)
 		return 0
 
@@ -181,6 +183,7 @@ class CEldaParser(Parser):
 	def bloqueDeclaracionFunciones(self, p):
 		pass
 
+<<<<<<< HEAD
 	'''
 		Esta regla esta encargada de obtener la funcion, ya sea la version completa o el
 		prototipo de la funcion que se llama. En caso de que no sea un prototipo se llama 
@@ -193,6 +196,17 @@ class CEldaParser(Parser):
 		pass
 
 	# Nos permite obtener el tipo de la variable o funcion.
+=======
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines')
+	def declaracionFuncion(self, p):
+		pass
+
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
+	def declaracionFuncion(self, p):
+		if modulo in self.tablaModulos:
+			pass
+
+>>>>>>> 7b75d2ee54ea836b847e389412f3fe586c42ef7d
 	@_('VOID',
 	   'BOOL',
 	   'FLOAT',
@@ -200,7 +214,7 @@ class CEldaParser(Parser):
 	   'CHAR',
 	   'STRING')
 	def tipo(self, p):
-		pass
+		return p[0]
 
 	# Regla utilzada para indicar que o hay argumentos o no hay.
 	@_('declaracionVariable declaracionArgumentos2',

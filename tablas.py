@@ -71,3 +71,35 @@ class TablaVariables:
 		for variable, datos in self.tablaVariables.items():
 			entradas.append(variable + " => (" + ', '.join(map(str, datos)) + ")")
 		return '\n'.join(entradas)
+
+class TablaModulos:
+	"""docstring for TablaModulos"""
+	def __init__(self):
+		# Se define como un diccionario vacio
+		self.tablaModulos = {}
+		
+	def agregarATabla(self, nombre, tipo, direccion, *argumentos):
+		if len(argumentos) == 0:
+			self.tablaModulos[nombre] = (nombre, tipo, direccion, [], TablaVariables())
+
+	# Funcion para consegui la direccion de la variable que se nos indica.
+	def conseguirDireccion(self, nombre, *accesos):
+		if len(accesos) == 0:
+			return self.tablaModulos[nombre][2]
+		else:
+			InfoDimension = self.tablaModulos[nombre][3]
+			desplazamiento = 0
+			for entrada in accesos:
+				# Debemos verficar que la entrada no sea mayor al tamanio.
+				if entrada >= InfoDimension.tamano:
+					pass # error index ouf of bounds
+				# Debemos obtener el desplazamiento adecuado para obtener la direccion adecuada.
+				desplazamiento += int(entrada) * InfoDimension.m
+				InfoDimension = InfoDimension.next
+			return self.tablaModulos[nombre][2] + desplazamiento
+
+	def __str__(self):
+		entradas = []
+		for variable, datos in self.tablaModulos.items():
+			entradas.append(variable + " => (" + ', '.join(map(str, datos)) + ")")
+		return '\n'.join(entradas)
