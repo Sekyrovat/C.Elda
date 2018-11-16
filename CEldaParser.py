@@ -7,7 +7,7 @@
 import sys
 from sly import Parser
 from CEldaLexer import CEldaLexer
-from tablas import TablaConstantes, TablaVariables
+from tablas import TablaConstantes, TablaVariables, TablaModulos
 from cuadruplos import Cuadruplos
 import cuboSemantico
 
@@ -38,6 +38,7 @@ class CEldaParser(Parser):
 	def __init__(self):
 		self.tablaConstantes = TablaConstantes()
 		self.tablaVariables = TablaVariables()
+		self.tablaModulos = TablaModulos()
 		self.cuadruplos = Cuadruplos()
 		self.pilaSaltosPendientes = []
 		self.pilaAuxTernario = []
@@ -86,6 +87,7 @@ class CEldaParser(Parser):
 		print("Success!")
 		print(self.tablaConstantes)
 		print(self.tablaVariables)
+		print(self.tablaModulos)
 		print(self.cuadruplos)
 		return 0
 
@@ -142,10 +144,14 @@ class CEldaParser(Parser):
 	def bloqueDeclaracionFunciones(self, p):
 		pass
 
-	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
-	   'FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines')
 	def declaracionFuncion(self, p):
 		pass
+
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
+	def declaracionFuncion(self, p):
+		if modulo in self.tablaModulos:
+			pass
 
 	@_('VOID',
 	   'BOOL',
@@ -154,7 +160,7 @@ class CEldaParser(Parser):
 	   'CHAR',
 	   'STRING')
 	def tipo(self, p):
-		pass
+		return p[0]
 
 	@_('declaracionVariable declaracionArgumentos2',
 	   '")"')
