@@ -16,6 +16,7 @@ class CEldaParser(Parser):
 	debugfile = 'parser.out'
 	tokens = CEldaLexer.tokens
 
+	# Declaramos la asociacion de algunos operadores.
 	precedence = (
 		('right', MNEWLINES),
 		('right', NEWLINE),
@@ -35,6 +36,7 @@ class CEldaParser(Parser):
 		('left', POSTINCDEC) # Version postfija de incremento y decremento
 	)
 
+	# Funcion para inicializar algunos de los valores que se usaran a lo largo del programa.
 	def __init__(self):
 		self.tablaConstantes = TablaConstantes()
 		self.tablaVariables = TablaVariables()
@@ -47,14 +49,21 @@ class CEldaParser(Parser):
 		self.nivelDeEspera = 0
 		self.dirVariables = 5000
 
+	'''
+		El uso de niveles de espera es para el uso de fors y ciclos, ya que esto permite su
+		manejo de forma adecuada y sencilla.
+	'''
+	# Aumentamos el nivel de espera presente.
 	def agregaCapaEspera(self):
 		self.cuadruplos.agregaCapaEspera()
 		self.nivelDeEspera += 1
 
+	# Liberamos el nivel de espera.
 	def liberaEspera(self):
 		self.contadorCuadruplos += self.cuadruplos.liberaEspera()
 		self.nivelDeEspera -= 1
 
+	# Funcion usada para generar el cuadruplo, en base a las indicacions que se le den.
 	def generaCuadruplo(self, operacion, operando1, operando2, resultado):
 		if self.nivelDeEspera:
 			self.cuadruplos.generaEnEspera(operacion, operando1, operando2, resultado)
@@ -62,6 +71,7 @@ class CEldaParser(Parser):
 			self.cuadruplos.generaCuadruplo(operacion, operando1, operando2, resultado)
 			self.contadorCuadruplos += 1
 
+	# Esta funcion es para generar las temporales que se requiera de la operacion.
 	def generaTemporal(self, tipo):
 		resultado = ('t', self.contadorTemporales, tipo)
 		self.contadorTemporales += 1
@@ -73,6 +83,7 @@ class CEldaParser(Parser):
 	##################################################################
 	##################################################################
 	
+	# Funcion con la regla para la estructura general del programa.
 	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
 	   'comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
 	   'comentarioInicial bloqueDeclaracionConstantes                           bloqueDeclaracionFunciones MAIN cuerpoFuncion',
@@ -89,41 +100,58 @@ class CEldaParser(Parser):
 		print(self.cuadruplos)
 		return 0
 
+	'''
+		Funcion con la regla para el procesamiento del comentario inicial, estaregla se usa para 
+		distinguir entre comentarios sencillos y comentarios de tipo bloque
+	'''
 	@_('comentarioInicialSimple',
 	   'comentarioInicialBloque')
 	def comentarioInicial(self, p):
 		pass
 
+	# Funcion con la regla encargada del manejo de comentario simple. Debe recibir la matricula.
 	@_('COMENTARIO_SIMPLE CONTENIDO_COMENTARIO NEWLINE comentarioInicialSimple',
 	   'COMENTARIO_SIMPLE NEWLINE comentarioInicialSimple',
 	   'COMENTARIO_SIMPLE MATRICULA newlines')
 	def comentarioInicialSimple(self, p):
 		pass
 
+	# Funcion con la regla para el manejo del comentario de bloque.
 	@_('INICIO_COMENTARIO_BLOQUE contenidoComentarioBloque newlines')
 	def comentarioInicialBloque(self, p):
 		pass
 
+	# Regla especial para el manejo y consumo del contenido del comentario de tipo bloque.
 	@_('CONTENIDO_COMENTARIO contenidoComentarioBloque2')
 	def contenidoComentarioBloque(self, p):
 		pass
 	
+	# Para poder finalizar con el comentario debe de recibir una matricula y el cierre del comentario.
 	@_('CONTENIDO_COMENTARIO contenidoComentarioBloque2',
 	   'MATRICULA contenidoComentarioBloque3')
 	def contenidoComentarioBloque2(self, p):
 		pass
 
+	# Para poder finalizar con el comentario debe de recibir una matricula y el cierre del comentario.
 	@_('CONTENIDO_COMENTARIO contenidoComentarioBloque3',
 	   'MATRICULA contenidoComentarioBloque3',
 	   'FIN_COMENTARIO_BLOQUE')
 	def contenidoComentarioBloque3(self, p):
 		pass
 
+	''''
+		Esta regla esta creada con la intencion de encargarse de todas las declaraciones de constantes.
+		Se realizo recursion por la izquierda aprovechando que SLY es de tipo LALR(1)
+	'''
 	@_('bloqueDeclaracionConstantes CONST SPACE declaracionConstante ";" newlines',
 	   'CONST SPACE declaracionConstante ";" newlines')
 	def bloqueDeclaracionConstantes(self, p):
 		pass
 
+	'''
+		FRegla secundaria a la regla de "def bloqueDeclaracionConstantes(self, p):" donde declaramos
+		el tipo de la constant, su nombre y la igualamos a un valor.
+	'''
 	@_('BOOL SPACE BOCONID ASSIGNMENT A_BOOLEAN',
 	   'FLOAT SPACE FLCONID ASSIGNMENT DECIMAL',
 	   'INT SPACE INCONID ASSIGNMENT ENTERO',
@@ -132,21 +160,39 @@ class CEldaParser(Parser):
 	def declaracionConstante(self, p):
 		self.tablaConstantes.agregarATabla(p[2], p[0], p[4])
 
+
+	'''
+		Regla encargada de la declaracion de las variables globales, estas se deben declarar fuera
+		de cualquier modulo y tienen un scope global.
+	'''
 	@_('bloqueDeclaracionGlobales declaracionVariable ";" newlines',
 	   'declaracionVariable ";" newlines')
 	def bloqueDeclaracionGlobales(self, p):
 		pass
 
+	'''
+		Tras haber definido las variables globales, debemos procesar las funciones, esto debido a 
+		la estructura base que hemos diseniado para el lengguaje. Esta regla nos permite declarar
+		varias funciones, pero antes de avanzar con la siguiente funcion llama a 
+		"def declaracionFuncion(self, p):"
+	'''
 	@_('bloqueDeclaracionFunciones declaracionFuncion',
 	   'declaracionFuncion')
 	def bloqueDeclaracionFunciones(self, p):
 		pass
 
+	'''
+		Esta regla esta encargada de obtener la funcion, ya sea la version completa o el
+		prototipo de la funcion que se llama. En caso de que no sea un prototipo se llama 
+		a la funcion de "def cuerpoFuncion(self, p):". Se hace notar que 'tipo' tambien
+		llama a una funcion "def tipo(self,p):" que nos da el tipo de retorno.
+	'''
 	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
 	   'FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
 	def declaracionFuncion(self, p):
 		pass
 
+	# Nos permite obtener el tipo de la variable o funcion.
 	@_('VOID',
 	   'BOOL',
 	   'FLOAT',
@@ -156,26 +202,44 @@ class CEldaParser(Parser):
 	def tipo(self, p):
 		pass
 
+	# Regla utilzada para indicar que o hay argumentos o no hay.
 	@_('declaracionVariable declaracionArgumentos2',
 	   '")"')
 	def declaracionArgumentos(self, p):
 		pass
 
+	'''
+		En caso de haber argumentos preparamos el final con parentesis y habilitamos
+		recursion para la declaracion de varios parametros.
+	'''
 	@_('"," SPACE declaracionVariable declaracionArgumentos2',
 	   '")"')
 	def declaracionArgumentos2(self, p):
 		pass
 
+	'''
+		Esta es una de las funciones mas importantes que tenemos, ya que se encarga del
+		cuerpo de las funciones que tengamos, esto incluye al main. Su esetructura 
+		puede tener un bloqueDeclaracionVariables pero necesita statements. Que son todas
+		las expresiones y operaciones validas.
+	'''
 	@_('NEWLINE "{" newlines bloqueDeclaracionVariables statements "}" NEWLINE',
 	   'NEWLINE "{" newlines statements "}" NEWLINE')
 	def cuerpoFuncion(self, p):
 		pass
 
+	# Esta regla nos permite manejar la declaracion de variables en un punto dado.
 	@_('bloqueDeclaracionVariables tabs declaracionVariable ";" newlines',
 	   'tabs declaracionVariable ";" newlines')
 	def bloqueDeclaracionVariables(self, p):
 		pass
 
+	'''
+		Debido a la naturaleza del lenguaje, cada declaracion tiene su propia regla o 
+		diagrama, pero todas siguen el mismo algoritmo de declaracion, donde obtenemos
+		el tipo, la dimension y por ultimo esperamos un nombre en base a estos mismos
+		detalles de la variable.
+	'''
 	@_('declaracionBool',
 	   'declaracionFloat',
 	   'declaracionInt',
@@ -186,26 +250,40 @@ class CEldaParser(Parser):
 	def declaracionVariable(self, p):
 		pass
 
+	# El uso de espacios es obligatorio.
 	@_('BOOL SPACE declaracionBool2')
 	def declaracionBool(self, p):
 		pass
 
+	# Debemos ver cual de los tres tipos de declaracion se hara.
 	@_('boolSimple',
 	   'boolArray',
 	   'boolMatriz')
 	def declaracionBool2(self, p):
 		pass
 
+	'''
+		Si es una variable simple utilizamos esta regla. Donde agregamos a la tabla la nueva
+		variable que se genero.
+	'''
 	@_('BOID')
 	def boolSimple(self, p):
 		self.tablaVariables.agregarATabla(p.BOID, 'bool', self.dirVariables)
 		self.dirVariables += 1
-
+	
+	'''
+		Si es una variable de una dimension utilizamos esta regla. Donde agregamos a la 
+		tabla la nueva variable que se genero, pero incluimos el tamanio del arreglo.
+	'''
 	@_('BOARRID "[" tamano "]"')
 	def boolArray(self, p):
 		self.tablaVariables.agregarATabla(p.BOARRID, 'bool', self.dirVariables, p.tamano)
 		self.dirVariables += p.tamano
 
+	'''
+		Si es una variable de dos dimensiones utilizamos esta regla. Donde agregamos a la 
+		tabla la nueva variable que se genero, pero inclcuimos el tamanio de las dos dimensiones.
+	'''
 	@_('BOMATID "[" tamano "]" "[" tamano "]"')
 	def boolMatriz(self, p):
 		self.tablaVariables.agregarATabla(p.BOMATID, 'bool', self.dirVariables, p.tamano0, p.tamano1)
@@ -311,6 +389,10 @@ class CEldaParser(Parser):
 		self.tablaVariables.agregarATabla(p.STMATID, 'string', self.dirVariables, p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
+	'''
+		Regla para tokenizar los enteros. Se hace notar que el tamanio de las dimensiones
+		debe ser un entero o una constante de tipo entero.
+	'''
 	@_('ENTERO')
 	def tamano(self, p):
 		return p.ENTERO
@@ -343,6 +425,7 @@ class CEldaParser(Parser):
 	def declaracionPila2(self, p):
 		pass
 
+	
 	@_('statements tabs statement newlines',
 	   'tabs statement newlines')
 	def statements(self, p):
