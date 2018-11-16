@@ -183,20 +183,12 @@ class CEldaParser(Parser):
 	def bloqueDeclaracionFunciones(self, p):
 		pass
 
-<<<<<<< HEAD
 	'''
 		Esta regla esta encargada de obtener la funcion, ya sea la version completa o el
 		prototipo de la funcion que se llama. En caso de que no sea un prototipo se llama 
 		a la funcion de "def cuerpoFuncion(self, p):". Se hace notar que 'tipo' tambien
 		llama a una funcion "def tipo(self,p):" que nos da el tipo de retorno.
 	'''
-	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
-	   'FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
-	def declaracionFuncion(self, p):
-		pass
-
-	# Nos permite obtener el tipo de la variable o funcion.
-=======
 	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines')
 	def declaracionFuncion(self, p):
 		pass
@@ -206,7 +198,7 @@ class CEldaParser(Parser):
 		if modulo in self.tablaModulos:
 			pass
 
->>>>>>> 7b75d2ee54ea836b847e389412f3fe586c42ef7d
+	# Nos permite obtener el tipo de la variable o funcion.
 	@_('VOID',
 	   'BOOL',
 	   'FLOAT',
@@ -411,6 +403,7 @@ class CEldaParser(Parser):
 	def tamano(self, p):
 		return p.ENTERO
 
+	# Esta regla es usada para obtener el valor de una constante entera.
 	@_('INCONID')
 	def tamano(self, p):
 		return self.tablaConstantes.getValor(p.INCONID)
@@ -439,12 +432,17 @@ class CEldaParser(Parser):
 	def declaracionPila2(self, p):
 		pass
 
-	
+	'''
+		La regla siguiente es la base de la creacion de programas, ya que nos permite
+		desplazarnos a las expresiones que se usan en el desarrollo de codigo de dia a dia.
+		Maneja la recursion por la izquierda hasta que ya no se leen mas.
+	'''	
 	@_('statements tabs statement newlines',
 	   'tabs statement newlines')
 	def statements(self, p):
 		pass
 
+	# Aqui se dan las expresiones generales que tenemos.
 	@_('condicionalIf',
 	   'condicionalSwitch',
 	   'cicloFor',
@@ -457,27 +455,47 @@ class CEldaParser(Parser):
 	def statement(self, p):
 		pass
 
+	'''
+		Punto inicial del cual parte el if, lee la condicion, los corchetes,
+		llama a 'elseif' spacio y recursivamente a si misma.
+	'''
 	@_('condicionIf corchetes SPACE elseif SPACE condicionalIf')
 	def condicionalIf(self, p):
 		pass
 
+	'''
+		Segundo caso que se puede presentar es en caso de que solo se presente
+		un if o un if con un else. Y no se lleve mas.
+	'''
 	@_('condicionIf corchetes SPACE elseFinal corchetes',
 	   'condicionIf corchetes')
 	def condicionalIf(self, p):
 		saltoPendiente = self.pilaSaltosPendientes.pop()
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 
+	'''
+		Regla para tratar el inicio del IF, ya que toma el if, el espacio y llama al
+		parentesis
+	'''
 	@_('IF SPACE parentesis')
 	def condicionIf(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
 		self.cuadruplos.generaCuadruplo('GoToF', p.parentesis, None, -1)
 		self.contadorCuadruplos += 1
-
+	
+	'''
+		El caso de la regla del else rellena el salto que dejo pendiente el GotoF del
+		inicio del if.
+	'''
 	@_('ELSE')
 	def elseif(self, p):
 		saltoPendiente = self.pilaSaltosPendientes.pop()
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 
+	'''
+		El caso de la regla del else final rellena el salto que dejo pendiente el 
+		GotoF del inicio del if. Ademas de generar el goto al final del else.
+	'''
 	@_('ELSE')
 	def elseFinal(self, p):
 		saltoPendiente = self.pilaSaltosPendientes.pop()
@@ -512,51 +530,67 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GoToV', resultado, None, -1)
 		return p.literalOConstante
 
+	# Esta regla es para el manejo de literales o constantes.
 	@_('literal',
 	   'constante')
 	def literalOConstante(self, p):
 		return ('v',) + p[0]
 		
+	# Regla para identificar booleanos.
 	@_('A_BOOLEAN')
 	def literal(self, p):
 		return (p.A_BOOLEAN, 'bool')
 
+	# Regla para identificar numeros decimales
 	@_('DECIMAL')
 	def literal(self, p):
 		return (p.DECIMAL, 'float')
 
+	# Regla para identificar numeros enteros
 	@_('ENTERO')
 	def literal(self, p):
 		return (p.ENTERO, 'int')
-
+	# Regla para identificar chars
 	@_('A_CHAR')
 	def literal(self, p):
 		return (p.A_CHAR, 'char')
 
+	# Regla para identificar strings
 	@_('A_STRING')
 	def literal(self, p):
 		return (p.A_STRING, 'string')
 
+	# Regla para identificar booleanos constantes.
 	@_('BOCONID')
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.BOCONID), 'bool')
 
+	# Regla para identificar numeros decimales constantes.
 	@_('FLCONID')
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.FLCONID), 'float')
 
+	# Regla para identificar numeros enteros constantes.
 	@_('INCONID')
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.INCONID), 'int')
 
+	# Regla para identificar chars constantes.
 	@_('CHCONID')
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.CHCONID), 'char')
 
+	# Regla para identificar strings constantes.
 	@_('STCONID')
 	def constante(self, p):
 		return (self.tablaConstantes.getValor(p.STCONID), 'string')
 
+	'''
+		Regla encargada de manejar el FOR, aumenta el nivel de espera, mientras que 
+		quita un cuadruplo de la pila de espera, genera un goto y rellena el fin de
+		cuadruplo de la salida del for con el valor.
+
+	'''
 	@_('FOR SPACE "(" inicializacionFor ";" SPACE condicionFor ";" SPACE actualizacionFor ")" corchetes')
 	def cicloFor(self, p):
 		self.nivelDeEspera += 1
@@ -565,11 +599,21 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GoTo', None, None, self.pilaSaltosPendientes.pop())
 		self.cuadruplos.rellena(salidaDelFor, self.contadorCuadruplos)
 
+	'''
+		La inicializacion en el for consta de una asignacion, ademas de meter en la pila 
+		de daltos pendientes el contador de cuadruplos.
+	'''
 	@_('asignacion')
 	def inicializacionFor(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
 		return p.asignacion
 
+	'''
+		La condicion en el for consta de una asignacion. Se valida que no se use un string
+		para realizar la coomparacion y se mete a la pila de daltos pendientes el actual.
+		Se genera un GoToF que aun no esta completo que depende de la condicion.
+		Y metemos el cuadruplo a la lista de espera.
+	'''
 	@_('asignacion')
 	def condicionFor(self, p):
 		if p.asignacion[2] == 'string':
@@ -579,6 +623,7 @@ class CEldaParser(Parser):
 		self.agregaCapaEspera()
 		return p.asignacion
 
+	# En la actualizacion manejamos la asignacion y le debemos restar al nivel de espera.
 	@_('asignacion')
 	def actualizacionFor(self, p):
 		self.nivelDeEspera -= 1

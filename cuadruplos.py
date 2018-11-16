@@ -9,22 +9,31 @@ def toStringHelper(string):
 
 class Cuadruplos(object):
 	"""docstring for Cuadruplos"""
+	# Inicializacion vacia de las variables.
 	def __init__(self):
 		self.cuadruplos = []
 		self.enEspera = []
-	
+
+	# Funcion para generar cuadruplos y meterlos en la lista de cuadruplos.
 	def generaCuadruplo(self, operacion, operando1, operando2, resultado):
 		self.cuadruplos.append((operacion, operando1, operando2, resultado))
 
+	'''
+		Funcion para rellenar la informacion de un cuadruplo dado con la 
+		info de la posicion del cuadruplo.
+	'''
 	def rellena(self, numeroCuadruplo, valor):
 		self.cuadruplos[numeroCuadruplo] = self.cuadruplos[numeroCuadruplo][0:3] + (valor,)
 
+	# Funcion para agregar cuadruplos a la lista de espera.
 	def agregaCapaEspera(self):
 		self.enEspera.append([])
 
+	# Funcion que genera un cuadruplo y lo pone en el arreglo de espera.
 	def generaEnEspera(self, operacion, operando1, operando2, resultado):
 		self.enEspera[-1].append((operacion, operando1, operando2, resultado))
 
+	# Esta funcion sirve para sacar el tope de la lisra de espera para poder rellenarlo.
 	def liberaEspera(self):
 		espera = self.enEspera.pop()
 		self.cuadruplos.extend(espera)
