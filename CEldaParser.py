@@ -19,7 +19,7 @@ class CEldaParser(Parser):
 	# Declaramos la asociacion de algunos operadores.
 	precedence = (
 		('right', MNEWLINES),
-		('right', NEWLINE),
+		('left', NEWLINE),
 		# ('right', ASSIGNMENT),
 		# ('right', TERNARIOPT1, TERNARIOPT2),
 		# ('left', OR),
@@ -39,7 +39,8 @@ class CEldaParser(Parser):
 	# Funcion para inicializar algunos de los valores que se usaran a lo largo del programa.
 	def __init__(self):
 		self.tablaConstantes = TablaConstantes()
-		self.tablaVariables = TablaVariables()
+		self.tablaVariablesGlobales = TablaVariables()
+		self.tablaVariablesActual = None
 		self.tablaModulos = TablaModulos()
 		self.cuadruplos = Cuadruplos()
 		self.pilaSaltosPendientes = []
@@ -48,7 +49,8 @@ class CEldaParser(Parser):
 		self.contadorCuadruplos = 0
 		self.contadorTemporales = 0
 		self.nivelDeEspera = 0
-		self.dirVariables = 5000
+		self.dirVariables = 0
+		self.finVariablesGlobales = 0
 
 	'''
 		El uso de niveles de espera es para el uso de fors y ciclos, ya que esto permite su
@@ -78,6 +80,12 @@ class CEldaParser(Parser):
 		self.contadorTemporales += 1
 		return resultado
 
+	def agregaVariable(self, nombre, tipo, *dimensiones):
+		if self.tablaVariablesActual is None:
+			self.tablaVariablesGlobales.agregarATabla(nombre, tipo, self.dirVariables, dimensiones)
+		else:
+			self.tablaVariablesActual.agregarATabla(nombre, tipo, self.dirVariables, dimensiones)
+
 	##################################################################
 	##################################################################
 	################ Comienzan las reglas de sintaxis ################
@@ -85,19 +93,19 @@ class CEldaParser(Parser):
 	##################################################################
 	
 	# Funcion con la regla para la estructura general del programa.
-	@_('comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
-	   'comentarioInicial bloqueDeclaracionConstantes bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
-	   'comentarioInicial bloqueDeclaracionConstantes                           bloqueDeclaracionFunciones MAIN cuerpoFuncion',
-	   'comentarioInicial bloqueDeclaracionConstantes                                                      MAIN cuerpoFuncion',
-	   'comentarioInicial                             bloqueDeclaracionGlobales bloqueDeclaracionFunciones MAIN cuerpoFuncion',
-	   'comentarioInicial                             bloqueDeclaracionGlobales                            MAIN cuerpoFuncion',
-	   'comentarioInicial                                                       bloqueDeclaracionFunciones MAIN cuerpoFuncion',
-	   'comentarioInicial                                                                                  MAIN cuerpoFuncion')
+	@_('comentarioInicial bloqueDeclaracionConstantes declaracionesGlobales bloqueDeclaracionFunciones inicializaMain cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes declaracionesGlobales                            inicializaMain cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes                       bloqueDeclaracionFunciones inicializaMain cuerpoFuncion',
+	   'comentarioInicial bloqueDeclaracionConstantes                                                  inicializaMain cuerpoFuncion',
+	   'comentarioInicial                             declaracionesGlobales bloqueDeclaracionFunciones inicializaMain cuerpoFuncion',
+	   'comentarioInicial                             declaracionesGlobales                            inicializaMain cuerpoFuncion',
+	   'comentarioInicial                                                   bloqueDeclaracionFunciones inicializaMain cuerpoFuncion',
+	   'comentarioInicial                                                                              inicializaMain cuerpoFuncion')
 	def programa(self, p):
 		self.generaCuadruplo('EXIT', None, None, None)
 		print("Success!")
 		print(self.tablaConstantes)
-		print(self.tablaVariables)
+		print(self.tablaVariablesGlobales)
 		print(self.tablaModulos)
 		print(self.cuadruplos)
 		return 0
@@ -109,7 +117,7 @@ class CEldaParser(Parser):
 	@_('comentarioInicialSimple',
 	   'comentarioInicialBloque')
 	def comentarioInicial(self, p):
-		pass
+		self.generaCuadruplo('GoTo', None, None, -1)
 
 	# Funcion con la regla encargada del manejo de comentario simple. Debe recibir la matricula.
 	@_('COMENTARIO_SIMPLE CONTENIDO_COMENTARIO NEWLINE comentarioInicialSimple',
@@ -163,6 +171,10 @@ class CEldaParser(Parser):
 		self.tablaConstantes.agregarATabla(p[2], p[0], p[4])
 
 
+	@_('bloqueDeclaracionGlobales')
+	def declaracionesGlobales(self, p):
+		self.finVariablesGlobales = self.dirVariables
+
 	'''
 		Regla encargada de la declaracion de las variables globales, estas se deben declarar fuera
 		de cualquier modulo y tienen un scope global.
@@ -174,7 +186,7 @@ class CEldaParser(Parser):
 
 	'''
 		Tras haber definido las variables globales, debemos procesar las funciones, esto debido a 
-		la estructura base que hemos diseniado para el lengguaje. Esta regla nos permite declarar
+		la estructura base que hemos diseniado para el lenguaje. Esta regla nos permite declarar
 		varias funciones, pero antes de avanzar con la siguiente funcion llama a 
 		"def declaracionFuncion(self, p):"
 	'''
@@ -189,13 +201,26 @@ class CEldaParser(Parser):
 		a la funcion de "def cuerpoFuncion(self, p):". Se hace notar que 'tipo' tambien
 		llama a una funcion "def tipo(self,p):" que nos da el tipo de retorno.
 	'''
-	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines')
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
+	   'FUNC SPACE tipo "[" tamano "]" SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines',
+	   'FUNC SPACE tipo "[" tamano "]" "[" tamano "]" SPACE IDFUNCION "(" declaracionArgumentos cuerpoFuncion newlines')
 	def declaracionFuncion(self, p):
-		pass
+		if p.IDFUNCION not in self.tablaModulos.tablaModulos:
+			pass
+		else:
+			# Compara signatures
+			pass
+		self.generaCuadruplo("ENDPROC", None, None, None)
+		self.contadorTemporales = 0
+		self.dirVariables = self.finVariablesGlobales
 
-	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
+	@_('FUNC SPACE tipo SPACE IDFUNCION "(" declaracionArgumentos ";" newlines',
+	   'FUNC SPACE tipo "[" tamano "]" SPACE IDFUNCION "(" declaracionArgumentos ";" newlines',
+	   'FUNC SPACE tipo "[" tamano "]" "[" tamano "]" SPACE IDFUNCION "(" declaracionArgumentos ";" newlines')
 	def declaracionFuncion(self, p):
-		if modulo in self.tablaModulos:
+		if p.IDFUNCION in self.tablaModulos:
+			print('Funcion ya declarada', p.IDFUNCION, 'prototipo duplicado en linea', p.lineno)
+		else:
 			pass
 
 	# Nos permite obtener el tipo de la variable o funcion.
@@ -209,19 +234,15 @@ class CEldaParser(Parser):
 		return p[0]
 
 	# Regla utilzada para indicar que o hay argumentos o no hay.
-	@_('declaracionVariable declaracionArgumentos2',
+	@_('declaracionVariable "," SPACE declaracionArgumentos',
+	   'declaracionVariable ")"',
 	   '")"')
 	def declaracionArgumentos(self, p):
 		pass
 
-	'''
-		En caso de haber argumentos preparamos el final con parentesis y habilitamos
-		recursion para la declaracion de varios parametros.
-	'''
-	@_('"," SPACE declaracionVariable declaracionArgumentos2',
-	   '")"')
-	def declaracionArgumentos2(self, p):
-		pass
+	@_('MAIN')
+	def inicializaMain(self, p):
+		self.cuadruplos.rellena(0, self.contadorCuadruplos)
 
 	'''
 		Esta es una de las funciones mas importantes que tenemos, ya que se encarga del
@@ -254,7 +275,7 @@ class CEldaParser(Parser):
 	   'declaracionFila',
 	   'declaracionPila')
 	def declaracionVariable(self, p):
-		pass
+		return p[0]
 
 	# El uso de espacios es obligatorio.
 	@_('BOOL SPACE declaracionBool2')
@@ -274,7 +295,7 @@ class CEldaParser(Parser):
 	'''
 	@_('BOID')
 	def boolSimple(self, p):
-		self.tablaVariables.agregarATabla(p.BOID, 'bool', self.dirVariables)
+		self.agregaVariable(p.BOID, 'bool')
 		self.dirVariables += 1
 	
 	'''
@@ -283,7 +304,7 @@ class CEldaParser(Parser):
 	'''
 	@_('BOARRID "[" tamano "]"')
 	def boolArray(self, p):
-		self.tablaVariables.agregarATabla(p.BOARRID, 'bool', self.dirVariables, p.tamano)
+		self.agregaVariable(p.BOARRID, 'bool', p.tamano)
 		self.dirVariables += p.tamano
 
 	'''
@@ -292,7 +313,7 @@ class CEldaParser(Parser):
 	'''
 	@_('BOMATID "[" tamano "]" "[" tamano "]"')
 	def boolMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.BOMATID, 'bool', self.dirVariables, p.tamano0, p.tamano1)
+		self.agregaVariable(p.BOMATID, 'bool', p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('FLOAT SPACE declaracionFloat2')
@@ -307,17 +328,17 @@ class CEldaParser(Parser):
 
 	@_('FLID')
 	def floatSimple(self, p):
-		self.tablaVariables.agregarATabla(p.FLID, 'float', self.dirVariables)
+		self.agregaVariable(p.FLID, 'float')
 		self.dirVariables += 1
 
 	@_('FLARRID "[" tamano "]"')
 	def floatArray(self, p):
-		self.tablaVariables.agregarATabla(p.FLARRID, 'float', self.dirVariables, p.tamano)
+		self.agregaVariable(p.FLARRID, 'float', p.tamano)
 		self.dirVariables += p.tamano
 
 	@_('FLMATID "[" tamano "]" "[" tamano "]"')
 	def floatMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.FLMATID, 'float', self.dirVariables, p.tamano0, p.tamano1)
+		self.agregaVariable(p.FLMATID, 'float', p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('INT SPACE declaracionInt2')
@@ -332,17 +353,17 @@ class CEldaParser(Parser):
 
 	@_('INID')
 	def intSimple(self, p):
-		self.tablaVariables.agregarATabla(p.INID, 'int', self.dirVariables)
+		self.agregaVariable(p.INID, 'int')
 		self.dirVariables += 1
 
 	@_('INARRID "[" tamano "]"')
 	def intArray(self, p):
-		self.tablaVariables.agregarATabla(p.INARRID, 'int', self.dirVariables, p.tamano)
+		self.agregaVariable(p.INARRID, 'int', p.tamano)
 		self.dirVariables += p.tamano
 
 	@_('INMATID "[" tamano "]" "[" tamano "]"')
 	def intMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.INMATID, 'int', self.dirVariables, p.tamano0, p.tamano1)
+		self.agregaVariable(p.INMATID, 'int', p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('CHAR SPACE declaracionChar2')
@@ -357,17 +378,17 @@ class CEldaParser(Parser):
 
 	@_('CHID')
 	def charSimple(self, p):
-		self.tablaVariables.agregarATabla(p.CHID, 'char', self.dirVariables)
+		self.agregaVariable(p.CHID, 'char')
 		self.dirVariables += 1
 
 	@_('CHARRID "[" tamano "]"')
 	def charArray(self, p):
-		self.tablaVariables.agregarATabla(p.CHARRID, 'char', self.dirVariables, p.tamano)
+		self.agregaVariable(p.CHARRID, 'char', p.tamano)
 		self.dirVariables += p.tamano
 
 	@_('CHMATID "[" tamano "]" "[" tamano "]"')
 	def charMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.CHMATID, 'char', self.dirVariables, p.tamano0, p.tamano1)
+		self.agregaVariable(p.CHMATID, 'char', p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
 	@_('STRING SPACE declaracionString2')
@@ -382,17 +403,17 @@ class CEldaParser(Parser):
 
 	@_('STID')
 	def stringSimple(self, p):
-		self.tablaVariables.agregarATabla(p.STID, 'string', self.dirVariables)
+		self.agregaVariable(p.STID, 'string')
 		self.dirVariables += 1
 
 	@_('STARRID "[" tamano "]"')
 	def stringArray(self, p):
-		self.tablaVariables.agregarATabla(p.STARRID, 'string', self.dirVariables, p.tamano)
+		self.agregaVariable(p.STARRID, 'string', p.tamano)
 		self.dirVariables += p.tamano
 
 	@_('STMATID "[" tamano "]" "[" tamano "]"')
 	def stringMatriz(self, p):
-		self.tablaVariables.agregarATabla(p.STMATID, 'string', self.dirVariables, p.tamano0, p.tamano1)
+		self.agregaVariable(p.STMATID, 'string', p.tamano0, p.tamano1)
 		self.dirVariables += p.tamano0 * p.tamano1
 
 	'''
@@ -480,8 +501,7 @@ class CEldaParser(Parser):
 	@_('IF SPACE parentesis')
 	def condicionIf(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
-		self.cuadruplos.generaCuadruplo('GoToF', p.parentesis, None, -1)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('GoToF', p.parentesis, None, -1)
 	
 	'''
 		El caso de la regla del else rellena el salto que dejo pendiente el GotoF del
@@ -500,8 +520,7 @@ class CEldaParser(Parser):
 	def elseFinal(self, p):
 		saltoPendiente = self.pilaSaltosPendientes.pop()
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
-		self.cuadruplos.generaCuadruplo('GoTo', None, None, -1)
-		self.contadorCuadruplos += 1
+		self.generaCuadruplo('GoTo', None, None, -1)
 		self.cuadruplos.rellena(saltoPendiente, self.contadorCuadruplos)
 
 	@_('SWITCH SPACE condicionSwitch NEWLINE tabs "{" NEWLINE cases tabs "}"')
@@ -511,8 +530,6 @@ class CEldaParser(Parser):
 	@_('parentesis')
 	def condicionSwitch(self, p):
 		self.pilaAuxSwitch.append(p.parentesis)
-		self.agregaCapaEspera()
-		self.nivelDeEspera -= 1
 		return p.parentesis
 
 	@_('tabs CASE SPACE condicionCase ":" NEWLINE statements cases')
@@ -911,63 +928,63 @@ class CEldaParser(Parser):
 
 	@_('BOID')
 	def idSencillo(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.BOID), 'bool')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.BOID), 'bool')
 
 	@_('FLID')
 	def idSencillo(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.FLID), 'float')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.FLID), 'float')
 
 	@_('INID')
 	def idSencillo(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.INID), 'int')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.INID), 'int')
 
 	@_('CHID')
 	def idSencillo(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.CHID), 'char')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.CHID), 'char')
 
 	@_('STID')
 	def idSencillo(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.STID), 'string')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.STID), 'string')
 
 	@_('BOARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.BOARRID, p.asignacion[1]), 'bool')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.BOARRID, p.asignacion[1]), 'bool')
 
 	@_('FLARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.FLARRID, p.asignacion[1]), 'float')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.FLARRID, p.asignacion[1]), 'float')
 
 	@_('INARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.INARRID, p.asignacion[1]), 'int')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.INARRID, p.asignacion[1]), 'int')
 
 	@_('CHARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.CHARRID, p.asignacion[1]), 'char')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.CHARRID, p.asignacion[1]), 'char')
 
 	@_('STARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.STARRID, p.asignacion[1]), 'string')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.STARRID, p.asignacion[1]), 'string')
 
 	@_('BOMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.BOMATID, p.asignacion0[1], p.asignacion1[1]), 'bool')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.BOMATID, p.asignacion0[1], p.asignacion1[1]), 'bool')
 
 	@_('FLMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.FLMATID, p.asignacion0[1], p.asignacion1[1]), 'float')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.FLMATID, p.asignacion0[1], p.asignacion1[1]), 'float')
 
 	@_('INMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.INMATID, p.asignacion0[1], p.asignacion1[1]), 'int')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.INMATID, p.asignacion0[1], p.asignacion1[1]), 'int')
 
 	@_('CHMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.CHMATID, p.asignacion0[1], p.asignacion1[1]), 'char')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.CHMATID, p.asignacion0[1], p.asignacion1[1]), 'char')
 
 	@_('STMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.tablaVariables.conseguirDireccion(p.STMATID, p.asignacion0[1], p.asignacion1[1]), 'string')
+		return (self.tablaVariablesGlobales.conseguirDireccion(p.STMATID, p.asignacion0[1], p.asignacion1[1]), 'string')
 
 	@_('IDFUNCION "(" argumentos',
 	   'READ "(" ")"',
@@ -1005,10 +1022,6 @@ class CEldaParser(Parser):
 	@_('tabs TAB',
 	   'TAB')
 	def tabs(self, p):
-		pass
-
-	@_('')
-	def empty(self, p):
 		pass
 
 	###################################################################

@@ -34,7 +34,7 @@ class TablaVariables:
 		# Se define como un diccionario vacio
 		self.tablaVariables = {}
 	
-	def agregarATabla(self, nombre, tipo, direccion, *tamDimensiones):
+	def agregarATabla(self, nombre, tipo, direccion, tamDimensiones):
 		# Debemos ver si el tamanio es igual a 0 para agregar la primer variable
 		if len(tamDimensiones) == 0:
 			self.tablaVariables[nombre] = (nombre, tipo, direccion, None)
@@ -79,24 +79,11 @@ class TablaModulos:
 		self.tablaModulos = {}
 		
 	def agregarATabla(self, nombre, tipo, direccion, *argumentos):
-		if len(argumentos) == 0:
-			self.tablaModulos[nombre] = (nombre, tipo, direccion, [], TablaVariables())
+		self.tablaModulos[nombre] = (nombre, tipo, direccion, argumentos, None, TablaVariables())
 
 	# Funcion para consegui la direccion de la variable que se nos indica.
-	def conseguirDireccion(self, nombre, *accesos):
-		if len(accesos) == 0:
-			return self.tablaModulos[nombre][2]
-		else:
-			InfoDimension = self.tablaModulos[nombre][3]
-			desplazamiento = 0
-			for entrada in accesos:
-				# Debemos verficar que la entrada no sea mayor al tamanio.
-				if entrada >= InfoDimension.tamano:
-					pass # error index ouf of bounds
-				# Debemos obtener el desplazamiento adecuado para obtener la direccion adecuada.
-				desplazamiento += int(entrada) * InfoDimension.m
-				InfoDimension = InfoDimension.next
-			return self.tablaModulos[nombre][2] + desplazamiento
+	def conseguirDireccion(self, nombre):
+		return self.tablaModulos[nombre][2]
 
 	def __str__(self):
 		entradas = []
