@@ -50,6 +50,9 @@ class TablaVariables:
 					nodo = NodoDimension(tamano, nodo)
 			self.tablaVariables[nombre] = (nombre, tipo, direccion, nodo)
 
+	def variableExiste(self, nombre):
+		return nombre in self.tablaVariables
+
 	# Funcion para consegui la direccion de la variable que se nos indica.
 	def conseguirDireccion(self, nombre, *accesos):
 		if len(accesos) == 0:
@@ -77,9 +80,18 @@ class TablaModulos:
 	def __init__(self):
 		# Se define como un diccionario vacio
 		self.tablaModulos = {}
+
+	def agregarPrototipo(self, nombre, tipo, argumentos):
+		self.tablaModulos[nombre] = (nombre, tipo, argumentos)
+
+	def checarFirma(self, nombre, tipo, argumentos):
+		return self.tablaModulos[nombre] == (nombre, tipo, argumentos)
 		
-	def agregarATabla(self, nombre, tipo, direccion, *argumentos):
-		self.tablaModulos[nombre] = (nombre, tipo, direccion, argumentos, None, TablaVariables())
+	def agregarATabla(self, nombre, tipo, direccion, argumentos, tablaVariables):
+		self.tablaModulos[nombre] = (nombre, tipo, direccion, argumentos, tablaVariables)
+
+	def funcionExiste(self, nombre):
+		return nombre in self.tablaModulos
 
 	# Funcion para consegui la direccion de la variable que se nos indica.
 	def conseguirDireccion(self, nombre):
