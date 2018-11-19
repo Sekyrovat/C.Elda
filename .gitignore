@@ -108,3 +108,4 @@ parser.out
 
 # sublime
 *.sublime-workspace
+out.json

@@ -111,6 +111,7 @@ main
 				if (iContJ % 3 == 0)
 				{
 					iParaSumar += iQueHaceAlgo;
+					break;
 				} else if (iContJ % 3 == 1)
 				{
 					for (iContJ = 20; iContJ < 200; iContJ += 20)

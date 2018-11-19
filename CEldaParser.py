@@ -46,6 +46,8 @@ class CEldaParser(Parser):
 		self.pilaSaltosPendientes = []
 		self.pilaAuxTernario = []
 		self.pilaAuxSwitch = []
+		self.pilaAuxContinue = []
+		self.pilaAuxBreak = []
 		self.contadorCuadruplos = 0
 		self.contadorTemporales = 0
 		self.nivelDeEspera = 0
@@ -579,7 +581,7 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GoToF', p.parentesis, None, -1)
 	
 	'''
-		El caso de la regla del else rellena el salto que dejo pendiente el GotoF del
+		El caso de la regla del else rellena el salto que dejo pendiente el GoToF del
 		inicio del if.
 	'''
 	@_('ELSE')
@@ -591,7 +593,7 @@ class CEldaParser(Parser):
 
 	'''
 		El caso de la regla del else final rellena el salto que dejo pendiente el 
-		GotoF del inicio del if. Ademas de generar el goto al final del else.
+		GoToF del inicio del if. Ademas de generar el GoTo al final del else.
 	'''
 	@_('ELSE')
 	def elseFinal(self, p):
@@ -603,10 +605,15 @@ class CEldaParser(Parser):
 	@_('SWITCH SPACE condicionSwitch NEWLINE tabs "{" NEWLINE tabs cases "}"')
 	def condicionalSwitch(self, p):
 		self.pilaAuxSwitch.pop()
+		while self.pilaAuxBreak[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
+		self.pilaAuxBreak.pop()
+
 
 	@_('parentesis')
 	def condicionSwitch(self, p):
 		self.pilaAuxSwitch.append(p.parentesis)
+		self.pilaAuxBreak.append('/')
 		return p.parentesis
 
 	@_('CASE SPACE condicionPrimerCase ":" NEWLINE statements jumpNextCaseCheck cases2',
@@ -708,7 +715,7 @@ class CEldaParser(Parser):
 
 	'''
 		Regla encargada de manejar el FOR, aumenta el nivel de espera, mientras que 
-		quita un cuadruplo de la pila de espera, genera un goto y rellena el fin de
+		quita un cuadruplo de la pila de espera, genera un GoTo y rellena el fin de
 		cuadruplo de la salida del for con el valor.
 
 	'''
@@ -719,6 +726,9 @@ class CEldaParser(Parser):
 		salidaDelFor = self.pilaSaltosPendientes.pop()
 		self.generaCuadruplo('GoTo', None, None, self.pilaSaltosPendientes.pop())
 		self.cuadruplos.rellena(salidaDelFor, self.contadorCuadruplos)
+		while self.pilaAuxBreak[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
+		self.pilaAuxBreak.pop()
 
 	'''
 		La inicializacion en el for consta de una asignacion, ademas de meter en la pila 
@@ -727,6 +737,7 @@ class CEldaParser(Parser):
 	@_('asignacion')
 	def inicializacionFor(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.pilaAuxBreak.append('/')
 		return p.asignacion
 
 	'''
@@ -755,10 +766,14 @@ class CEldaParser(Parser):
 		salidaDelWhile = self.pilaSaltosPendientes.pop()
 		self.generaCuadruplo('GoTo', None, None, self.pilaSaltosPendientes.pop())
 		self.cuadruplos.rellena(salidaDelWhile, self.contadorCuadruplos)
+		while self.pilaAuxBreak[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
+		self.pilaAuxBreak.pop()
 
 	@_('WHILE')
 	def palabraWhile(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.pilaAuxBreak.append('/')
 		return p.WHILE
 
 	@_('parentesis')
@@ -774,11 +789,15 @@ class CEldaParser(Parser):
 		if p.parentesis[2] == 'string':
 			print('Error: type mismatch in line:', p.lineno, 'Do loops can\'t choose based on a string')
 		self.generaCuadruplo('GoToV', p.parentesis, None, self.pilaSaltosPendientes.pop())
+		while self.pilaAuxBreak[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
+		self.pilaAuxBreak.pop()
 		return p.parentesis
 
 	@_('DO')
 	def palabraDO(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
+		self.pilaAuxBreak.append('/')
 		return p.DO
 
 	@_('NEWLINE tabs "{" newlines statements tabs "}"')
@@ -1096,9 +1115,10 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GOSUB', None, None, direccionFuncion)
 		return p.inicilizaLlamada[1]
 
-	@_('READ "(" ")"')
+	@_('READ "(" tipo ")"')
 	def llamadaFuncion(self, p):
-		pass
+		if p.tipo :
+			pass
 
 	@_('WRITE "(" asignacion ")"')
 	def llamadaFuncion(self, p):
@@ -1142,7 +1162,8 @@ class CEldaParser(Parser):
 
 	@_('BREAK')
 	def estatutoBreak(self, p):
-		pass
+		self.pilaAuxBreak.append(self.contadorCuadruplos)
+		self.generaCuadruplo('GoTo', None, None, -1)
 
 	@_('NEWLINE newlines %prec MNEWLINES',
 	   'NEWLINE %prec MNEWLINES')
