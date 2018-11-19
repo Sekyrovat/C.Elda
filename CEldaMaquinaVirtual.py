@@ -21,25 +21,21 @@ class CEldaMaquinaVirtual(object):
 		self.infoFunciones = data['funciones']
 		self.cuadruplos = data['cuadruplos']
 		self.currentCuad = 0;
-		self.memoriaGlobales = creaLista(frontera)
-		self.memoriaFuncion = creaLista(infoFunciones['main'][0])
-		self.memoriaTemporales = creaLista(infoFunciones['main'][1])
-		self.pilaDePopsaAhacerTemps = []
+		self.memoriaGlobales = self.creaLista(self.frontera)
+		self.memoriaFuncion = self.creaLista(self.infoFunciones['main'][0])
+		print(len(self.memoriaFuncion))
+		self.memoriaTemporales = self.creaLista(self.infoFunciones['main'][1])
+		# self.pilaDePopsaAhacerTemps = []
 		self.pilaDePausaTemps = []
-		self.pilaDePopsaAhacer = []
+		# self.pilaDePopsaAhacer = []
 		self.pilaDePausa= []
 		self.pilaRetorno = []
 
-		print(self.frontera)
-		print()
-		print(self.infoFunciones)
-		print()
-		print(self.cuadruplos)
-
 	def getValue(self, tripleta):
+		print(tripleta)
 		if tripleta[0] == 'v':
 			return tripleta[1]
-		elif tripleta[0] == 'd'
+		elif tripleta[0] == 'd':
 			if tripleta[1] < self.frontera:
 				valor = self.memoriaGlobales[tripleta[1]]
 			else:
@@ -49,134 +45,146 @@ class CEldaMaquinaVirtual(object):
 				print("Variable no inicializada.")
 				sys.exit(1)
 			return valor
-		else
+		else:
 			return self.memoriaTemporales[tripleta[1]]
 	
 
 	def setValue(self, tripleta, valor):
+		print(tripleta, valor)
 		if tripleta[0] == 'd':
 			if tripleta[1] < self.frontera:
 				self.memoriaGlobales[tripleta[1]] = valor
 			else:
 				direccion = tripleta[1] - self.frontera
+				print(direccion)
 				self.memoriaFuncion[direccion] = valor
 		else:
 			self.memoriaTemporales[tripleta[1]] = valor
 
 	def GoTo(self, cuadruplo):
-		self.currentCuad = cuadruplos.resultado - 1
+		self.currentCuad = cuadruplo[3] - 1
 
 	def GoToV(self, cuadruplo):
-		if getValue(cuadruplo[1]) > 0:
-			self.currentCuad = cuadruplos[3]-1
+		if self.getValue(cuadruplo[1]) > 0:
+			self.currentCuad = cuadruplo[3] - 1
 	
 	def GoToF(self, cuadruplo):
-		if getValue(cuadruplo[1]) == 0:
-			self.currentCuad = cuadruplos[3]-1
+		if self.getValue(cuadruplo[1]) == 0:
+			self.currentCuad = cuadruplo[3] - 1
 
-	def asign(self,cuadruplo):
-        self.setValue(cuadruplo[3], cuadruplo[1][1])
+	def asign(self, cuadruplo):
+		self.setValue(cuadruplo[3], cuadruplo[1][1])
 
 ##########################
 ##########################
 ##########################
 	def ENDPROC(self):
-		pops = self.pilaDePopsaAhacer.pop()
+		# pops = self.pilaDePopsaAhacer.pop()
 		pilaTemp = []
-		while pops >= 0:
-			pilaTemp.append(self.pilaDePausa.pop())
-			pops -= 1
+		# while pops >= 0:
+		pilaTemp.append(self.pilaDePausa.pop())
+		# pops -= 1
 		self.memoriaFuncion = pilaTemp
-		pops = self.pilaDePopsaAhacerTemps.pop()
+		# pops = self.pilaDePopsaAhacerTemps.pop()
 		pilaTemp = []
-		while pops >= 0:
-			pilaTemp.append(self.pilaDePausaTemps.pop())
-			pops -= 1
+		# while pops >= 0:
+		pilaTemp.append(self.pilaDePausaTemps.pop())
+		# pops -= 1
 		self.memoriaTemporales = pilaTemp
 
-	def opArit(self,cuad,memoria):
-        arg1 = self.getValue(cuadruplo[1])
-        arg2 =  self.getValue(cuadruplo[2])
+	def opArit(self, cuadruplo):
+		arg1 = self.getValue(cuadruplo[1])
+		if cuadruplo[2] is None:
+			arg2 = arg1
+			arg1 = 0
+		else:
+			arg2 = self.getValue(cuadruplo[2])
 		op = cuadruplo[0]
 		if op == '+':
-            arg3 = arg1 + arg2
-        elif op == '-':
-            arg3 = arg1 - arg2
-        elif op == '*':
-            arg3 = arg1 * arg2
-        elif op == '<<':
-        	arg3 = arg1 << arg2
-        elif op == '>>':
-        	arg3 = arg1 >> arg2
-        elif op == '^'
-        	arg3 = arg1 ^ arg2
-		elif op == '&'
+			arg3 = arg1 + arg2
+		elif op == '-':
+			arg3 = arg1 - arg2
+		elif op == '*':
+			arg3 = arg1 * arg2
+		elif op == '<<':
+			arg3 = arg1 << arg2
+		elif op == '>>':
+			arg3 = arg1 >> arg2
+		elif op == '^':
+			arg3 = arg1 ^ arg2
+		elif op == '&':
 			arg3 = arg1 & arg2
-		elif op == '|'
+		elif op == '|':
 			arg3 = arg1 | arg2
 		self.setValue(cuadruplo[3], arg3)
 
-    def opWithDiv(self, cuadruplo):
-        arg1 = self.getValue(cuadruplo[1])
-        arg2 =  self.getValue(cuadruplo[2])
+	def opWithDiv(self, cuadruplo):
+		arg1 = self.getValue(cuadruplo[1])
+		arg2 =  self.getValue(cuadruplo[2])
 		op = cuadruplo[0]
-        if(arg2 == 0):
-            print('ERROR division con 0')
-            quit()
-        if op == '/':
-            arg3 = arg1 / arg2
-        elif op == '%':
-            arg3 = arg1 % arg2
-        self.setValue(cuadruplo[3], arg3)
+		if(arg2 == 0):
+			print('ERROR division con 0')
+			quit()
+		if op == '/':
+			arg3 = arg1 / arg2
+		elif op == '%':
+			arg3 = arg1 % arg2
+		self.setValue(cuadruplo[3], arg3)
 
-    def opLogic(self,cuadruplo):
-        arg1 = self.getValue(cuadruplo[1])
-        arg2 =  self.getValue(cuadruplo[2])
+	def opLogic(self,cuadruplo):
+		arg1 = self.getValue(cuadruplo[1])
+		arg2 =  self.getValue(cuadruplo[2])
 		op = cuadruplo[0]
-		if op == '&&'
-			arg3 = arg1 && arg2
-		elif op == '||'
-			arg3 = arg1 || arg2 
-        elif op == '<':
-        	arg3 = arg1 < arg2
-        elif op == '<='
-        	arg3 = arg1 <= arg2
-		elif op == '>'
+		if op == '&&':
+			arg3 = arg1 and arg2
+		elif op == '||':
+			arg3 = arg1 or arg2 
+		elif op == '<':
+			arg3 = arg1 < arg2
+		elif op == '<=':
+			arg3 = arg1 <= arg2
+		elif op == '>':
 			arg3 = arg1 > arg2
-		elif op == '>='
+		elif op == '>=':
 			arg3 = arg1 >= arg2
-		elif op == '!='
+		elif op == '!=':
 			arg3 = arg1 != arg2
-		elif op == '=='
+		elif op == '==':
 			arg3 = arg1 == arg2 
 		self.setValue(cuadruplo[3], arg3)
 
 ##########################
 ##########################
 	def ERA(self, cuadruplo):
-		self.pilaDePausa.append(memoriaFuncion)
-		self.pilaDePausaTemps.append(memoriaTemporales)
-		self.pilaDePopsaAhacer.append(len(memoriaFuncion))
-		self.pilaDePopsaAhacerTemps.append(len(memoriaTemporales))
-		self.memoriaFuncion = []
-		self.memoriaTemporales = []
-		self.memoriaFuncion = creaLista(cuadruplo[1][0])
-		self.memoriaTemporales = creaLista(cuadruplo[1][1])
+		self.pilaDePausa.append(self.memoriaFuncion)
+		self.pilaDePausaTemps.append(self.memoriaTemporales)
+		# self.pilaDePopsaAhacer.append(len(self.memoriaFuncion))
+		# self.pilaDePopsaAhacerTemps.append(len(self.memoriaTemporales))
 
 ##########################
 	def GOSUB(self, cuadruplo):
+		self.memoriaFuncion = []
+		self.memoriaTemporales = []
+		self.memoriaFuncion = self.creaLista(cuadruplo[1][0])
+		self.memoriaTemporales = self.creaLista(cuadruplo[1][1])
 		self.currentCuad = cuadruplos[3]-1
 
 ##########################
 ##########################
 ##########################
 	def PARAM(self, cuadruplo):
-		pass
+		self.setValue(cuadruplo[1], cuadruplo[3])
+
 ##########################
 ##########################
-##########################
-	def RETURN(self):
-		pass
+	def RETURN(self, cuadruplo):
+		pilaTemp = []
+		pilaTemp.append(self.pilaDePausa.pop())
+		self.memoriaFuncion = pilaTemp
+		pilaTemp = []
+		pilaTemp.append(self.pilaDePausaTemps.pop())
+		self.memoriaTemporales = pilaTemp
+		self.pilaRetorno.append(getValue(cuadruplo[2]))
 
 	# def WriteVar(self, cuadruplo):
 	# 	print(getValue(cuadruplo[1]))
@@ -184,44 +192,52 @@ class CEldaMaquinaVirtual(object):
 	# def ReadVar(self, cuadruplo):
 	# 	temp = input()
 	# 	print(setValue(cuadruplo[3], cuadruplo[1]))
+
+	def creaLista(self, tam):
+		lista = [None] * tam
+		return lista
 		
-	def run(self,begin,end):
-        while self.cuadruplos[self.currentCuad[0]] != EXIT:
-            cuadruplo = self.cuadruplos[self.currentCuad]
-            operacion = cuadruplo[0]
-            if operacion == 'GoTo':
-                self.GoTo(cuadruplo)
-            elif operacion == 'GoToF':
-                self.GoToF(cuadruplo)
-            elif operacion == 'GoToV':
-                self.GoToV(cuadruplo)
-            elif operacion == 'ERA':
-                self.era(cuadruplo)
-            elif operacion == 'GOSUB':
-                self.GOSUB(cuadruplo)
-            elif operacion == 'ENDPROC':
-            	self.enproc(cuadruplo)
-            elif operacion == 'PARAM':
-                self.PARAM(cuadruplo)
-            elif operacion == 'RETURN':
-                self.RETURN(cuadruplo)
-            # elif operacion == 'verify':
-            #     self.verify()
-            elif operacion == '+' or operacion == '-' or operacion == '*' or operacion == '<<' or operacion == '>>' or operacion == '^' or operacion == '&' or operacion == '|':
-                self.opArit(cuadruplo)
-            elif operacion == '/' or operacion == '%':
-                self.opWithDiv(cuadruplo)
-            elif  operacion == '&&' or operacion == '||' or operacion == '<' or operacion == '<=' or operacion == '>' or operacion == '>=' or operacion == '!=' or operacion == '==':
-                self.opLogic(cuadruplo)
-            elif operacion == '=':
-                self.asign(cuadruplo)
-            elif operacion == 'Write':
-                self.WriteVar(cuadruplo)
-            elif operacion == 'Read':
-                self.ReadVar(cuadruplo)
+	def run(self):
+		while self.cuadruplos[self.currentCuad][0] != 'EXIT':
+			cuadruplo = self.cuadruplos[self.currentCuad]
+			operacion = cuadruplo[0]
+			if operacion == 'GoTo':
+				self.GoTo(cuadruplo)
+			elif operacion == 'GoToF':
+				self.GoToF(cuadruplo)
+			elif operacion == 'GoToV':
+				self.GoToV(cuadruplo)
+			elif operacion == 'ERA':
+				self.ERA(cuadruplo)
+			elif operacion == 'GOSUB':
+				self.GOSUB(cuadruplo)
+			elif operacion == 'ENDPROC':
+				self.ENDPROC(cuadruplo)
+			elif operacion == 'PARAM':
+				self.PARAM(cuadruplo)
+			elif operacion == 'RETURN':
+				self.RETURN(cuadruplo)
+			# elif operacion == 'verify':
+			#     self.verify()
+			elif operacion == '+' or operacion == '-' or operacion == '*' or operacion == '<<' or operacion == '>>' or operacion == '^' or operacion == '&' or operacion == '|':
+				self.opArit(cuadruplo)
+			elif operacion == '/' or operacion == '%':
+				self.opWithDiv(cuadruplo)
+			elif  operacion == '&&' or operacion == '||' or operacion == '<' or operacion == '<=' or operacion == '>' or operacion == '>=' or operacion == '!=' or operacion == '==':
+				self.opLogic(cuadruplo)
+			elif operacion == '=':
+				self.asign(cuadruplo)
+			elif operacion == 'Write':
+				self.WriteVar(cuadruplo)
+			elif operacion == 'Read':
+				self.ReadVar(cuadruplo)
+			else:
+				print('ERROR, cuadruplo no acceptado: ')
+				print(cuadruplo)
+			self.currentCuad = self.currentCuad + 1
+				# print(self.currentCuad)
+			print(cuadruplo)
 
-            else:
-                print('ERROR, cuadruplo no acceptado: ')
-                print(cuadruplo)
-
-            self.cuadActual = self.cuadActual + 1
+if __name__ == '__main__':
+	maquina = CEldaMaquinaVirtual()
+	maquina.run()
