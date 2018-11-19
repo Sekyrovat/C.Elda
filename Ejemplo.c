@@ -51,6 +51,8 @@ main
 	int iArrEnorme[100];
 	cDelSwitch = 'p';
 
+	iParaSumar = 8;
+
 	switch (cDelSwitch)
 	{
 		case cPASA:
@@ -68,7 +70,7 @@ main
 			break;
 	}
 
-	write(fibonacci(iParaSumar));
+	write(fibonacci(2));
 
 	bQueHaceAlgo = TRUE;
 	iQueHaceAlgo = 37 * 7 / 15 + 3 * 2 + iParaSumar << 2;

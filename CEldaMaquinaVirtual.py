@@ -26,14 +26,14 @@ class CEldaMaquinaVirtual(object):
 		print(len(self.memoriaFuncion))
 		self.memoriaTemporales = self.creaLista(self.infoFunciones['main'][1])
 		self.memACrear = []
-		# self.pilaDePopsaAhacerTemps = []
+		self.memoriaLlamada = []
 		self.pilaDePausaTemps = []
-		# self.pilaDePopsaAhacer = []
 		self.pilaDePausa= []
 		self.pilaRetorno = []
 
 	def getValue(self, tripleta):
 		print(tripleta)
+		print(self.currentCuad)
 		if tripleta[0] == 'v':
 			return tripleta[1]
 		elif tripleta[0] == 'd':
@@ -62,6 +62,11 @@ class CEldaMaquinaVirtual(object):
 		else:
 			self.memoriaTemporales[tripleta[1]] = valor
 
+	def setParam(self, valor, direccion):
+		direccion -= self.frontera
+		print(direccion)
+		self.memoriaLlamada[direccion] = valor
+
 	def GoTo(self, cuadruplo):
 		self.currentCuad = cuadruplo[3] - 1
 
@@ -77,15 +82,10 @@ class CEldaMaquinaVirtual(object):
 		self.setValue(cuadruplo[3], cuadruplo[1][1])
 
 ##########################
-	def ENDPROC(self):
-		pilaTemp = []
-		pilaTemp.append(self.pilaDePausa.pop())
-		self.memoriaFuncion = pilaTemp
-		pilaTemp = []
-		pilaTemp.append(self.pilaDePausaTemps.pop())
-		self.memoriaTemporales = pilaTemp
 
 	def opArit(self, cuadruplo):
+		print(cuadruplo)
+		print(self.currentCuad)
 		arg1 = self.getValue(cuadruplo[1])
 		if cuadruplo[2] is None:
 			arg2 = arg1
@@ -188,19 +188,28 @@ class CEldaMaquinaVirtual(object):
 		self.pilaDePausa.append(self.memoriaFuncion)
 		self.pilaDePausaTemps.append(self.memoriaTemporales)
 		self.memACrear = self.infoFunciones[cuadruplo[1]]
+		self.memoriaLlamada = self.creaLista(self.memACrear[0])
 
 ##########################
 	def GOSUB(self, cuadruplo):
 		self.currentCuad = cuadruplo[3]-1
-		self.memoriaFuncion = []
-		self.memoriaTemporales = []
-		self.memoriaFuncion = self.creaLista(self.memACrear[0])
+		self.memoriaFuncion = self.memoriaLlamada
 		self.memoriaTemporales = self.creaLista(self.memACrear[1])
 
 ##########################
 	def PARAM(self, cuadruplo):
-		self.setValue(cuadruplo[1], cuadruplo[3])
+		print(cuadruplo)
+		print(self.currentCuad)
+		self.setParam(cuadruplo[1], cuadruplo[3])
 
+	def ENDPROC(self):
+		pilaTemp = []
+		pilaTemp.append(self.pilaDePausa.pop())
+		self.memoriaFuncion = pilaTemp
+		pilaTemp = []
+		pilaTemp.append(self.pilaDePausaTemps.pop())
+		self.memoriaTemporales = pilaTemp
+		
 ##########################
 	def RETURN(self, cuadruplo):
 		pilaTemp = []
