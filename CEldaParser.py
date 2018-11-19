@@ -123,22 +123,22 @@ class CEldaParser(Parser):
 	def programa(self, p):
 		self.tablaModulos.agregarTamanosMemoria('main', self.dirVariables - self.finVariablesGlobales, self.contadorTemporales)
 		self.generaCuadruplo('EXIT', None, None, None)
-		# print()
-		# print('Tabla de Constantes')
-		# print(self.tablaConstantes)
-		# print()
-		# print('Tabla de Variables Globales')
-		# print(self.tablaVariablesGlobales)
-		# print()
-		# print('Tabla de Modulos')
-		# print(self.tablaModulos)
-		# print()
-		# print(self.finVariablesGlobales)
-		# print(self.tablaModulos.creaReduccion())
-		# print()
-		# print('Cuadruplos')
-		# print(self.cuadruplos)
-		# print()
+		print()
+		print('Tabla de Constantes')
+		print(self.tablaConstantes)
+		print()
+		print('Tabla de Variables Globales')
+		print(self.tablaVariablesGlobales)
+		print()
+		print('Tabla de Modulos')
+		print(self.tablaModulos)
+		print()
+		print(self.finVariablesGlobales)
+		print(self.tablaModulos.creaReduccion())
+		print()
+		print('Cuadruplos')
+		print(self.cuadruplos)
+		print()
 		salida = {}
 		salida['frontera'] = self.finVariablesGlobales
 		salida['funciones'] = self.tablaModulos.creaReduccion()
@@ -1096,10 +1096,13 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GOSUB', None, None, direccionFuncion)
 		return p.inicilizaLlamada[1]
 
-	@_('READ "(" ")"',
-	   'WRITE "(" argumentos')
+	@_('READ "(" ")"')
 	def llamadaFuncion(self, p):
 		pass
+
+	@_('WRITE "(" asignacion ")"')
+	def llamadaFuncion(self, p):
+		self.generaCuadruplo('WRITE', p.asignacion, None, None)
 
 	@_('IDFUNCION')
 	def inicilizaLlamada(self, p):
