@@ -32,9 +32,10 @@ class CEldaMaquinaVirtual(object):
 		self.pilaRetorno = []
 
 	def getValue(self, tripleta):
+		print('getValue')
 		print(tripleta)
-		print(self.currentCuad)
 		if tripleta[0] == 'v':
+			print(tripleta[1])
 			return tripleta[1]
 		elif tripleta[0] == 'd':
 			if tripleta[1] < self.frontera:
@@ -51,7 +52,6 @@ class CEldaMaquinaVirtual(object):
 	
 
 	def setValue(self, tripleta, valor):
-		print(tripleta, valor)
 		if tripleta[0] == 'd':
 			if tripleta[1] < self.frontera:
 				self.memoriaGlobales[tripleta[1]] = valor
@@ -64,7 +64,6 @@ class CEldaMaquinaVirtual(object):
 
 	def setParam(self, valor, direccion):
 		direccion -= self.frontera
-		print(direccion)
 		self.memoriaLlamada[direccion] = valor
 
 	def GoTo(self, cuadruplo):
@@ -84,9 +83,11 @@ class CEldaMaquinaVirtual(object):
 ##########################
 
 	def opArit(self, cuadruplo):
+		print('opArit')
 		print(cuadruplo)
 		print(self.currentCuad)
 		arg1 = self.getValue(cuadruplo[1])
+		print(arg1)
 		if cuadruplo[2] is None:
 			arg2 = arg1
 			arg1 = 0
@@ -96,6 +97,8 @@ class CEldaMaquinaVirtual(object):
 		if op == '+':
 			arg3 = arg1 + arg2
 		elif op == '-':
+			print(arg1)
+			print(arg2)
 			arg3 = arg1 - arg2
 		elif op == '*':
 			arg3 = arg1 * arg2
@@ -192,7 +195,7 @@ class CEldaMaquinaVirtual(object):
 
 ##########################
 	def GOSUB(self, cuadruplo):
-		self.currentCuad = cuadruplo[3]-1
+		self.currentCuad = cuadruplo[1] - 1
 		self.memoriaFuncion = self.memoriaLlamada
 		self.memoriaTemporales = self.creaLista(self.memACrear[1])
 
@@ -200,7 +203,7 @@ class CEldaMaquinaVirtual(object):
 	def PARAM(self, cuadruplo):
 		print(cuadruplo)
 		print(self.currentCuad)
-		self.setParam(cuadruplo[1], cuadruplo[3])
+		self.setParam(self.getValue(cuadruplo[1]), cuadruplo[3])
 
 	def ENDPROC(self):
 		pilaTemp = []
@@ -209,7 +212,7 @@ class CEldaMaquinaVirtual(object):
 		pilaTemp = []
 		pilaTemp.append(self.pilaDePausaTemps.pop())
 		self.memoriaTemporales = pilaTemp
-		
+
 ##########################
 	def RETURN(self, cuadruplo):
 		pilaTemp = []
@@ -218,10 +221,10 @@ class CEldaMaquinaVirtual(object):
 		pilaTemp = []
 		pilaTemp.append(self.pilaDePausaTemps.pop())
 		self.memoriaTemporales = pilaTemp
-		self.pilaRetorno.append(getValue(cuadruplo[2]))
+		self.pilaRetorno.append(self.getValue(cuadruplo[2]))
 
 	def WriteVar(self, cuadruplo):
-		print(getValue(cuadruplo[1]))
+		print(self.getValue(cuadruplo[1]))
 
 	def ReadVar(self, cuadruplo):
 		temp = input()
