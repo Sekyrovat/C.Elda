@@ -123,22 +123,27 @@ class CEldaParser(Parser):
 	def programa(self, p):
 		self.tablaModulos.agregarTamanosMemoria('main', self.dirVariables - self.finVariablesGlobales, self.contadorTemporales)
 		self.generaCuadruplo('EXIT', None, None, None)
-		print()
-		print('Tabla de Constantes')
-		print(self.tablaConstantes)
-		print()
-		print('Tabla de Variables Globales')
-		print(self.tablaVariablesGlobales)
-		print()
-		print('Tabla de Modulos')
-		print(self.tablaModulos)
-		print()
-		print(self.tablaModulos.creaReduccion())
-		print()
-		print('Cuadruplos')
-		print(self.cuadruplos)
-		print()
-		return 0
+		# print()
+		# print('Tabla de Constantes')
+		# print(self.tablaConstantes)
+		# print()
+		# print('Tabla de Variables Globales')
+		# print(self.tablaVariablesGlobales)
+		# print()
+		# print('Tabla de Modulos')
+		# print(self.tablaModulos)
+		# print()
+		# print(self.finVariablesGlobales)
+		# print(self.tablaModulos.creaReduccion())
+		# print()
+		# print('Cuadruplos')
+		# print(self.cuadruplos)
+		# print()
+		salida = {}
+		salida['frontera'] = self.finVariablesGlobales
+		salida['funciones'] = self.tablaModulos.creaReduccion()
+		salida['cuadruplos'] = self.cuadruplos.cuadruplos
+		return salida
 
 	'''
 		Funcion con la regla para el procesamiento del comentario inicial, estaregla se usa para 
@@ -1154,12 +1159,17 @@ class CEldaParser(Parser):
 
 
 if __name__ == '__main__':
+	import json
+	from CEldaEncoder import CEldaEncoder
 	lexer = CEldaLexer()
 	parser = CEldaParser()
 
 	with open(sys.argv[1], "r") as inputFile:
 		data = inputFile.read()
-	inputFile.close()
+		inputFile.close()
 	if data:
 		result = parser.parse(lexer.tokenize(data))
-		print(result)
+		encoder = CEldaEncoder()
+		with open('out.json', 'w') as outfile:
+			outfile.write(encoder.encode(result))
+			outfile.close()
