@@ -1112,7 +1112,7 @@ class CEldaParser(Parser):
 	@_('inicilizaLlamada "(" argumentos')
 	def llamadaFuncion(self, p):
 		direccionFuncion = self.tablaModulos.conseguirDireccion(p.inicilizaLlamada[0])
-		self.generaCuadruplo('GOSUB', None, None, direccionFuncion)
+		self.generaCuadruplo('GOSUB', direccionFuncion, None, p.inicilizaLlamada[1])
 		return p.inicilizaLlamada[1]
 
 	@_('READ "(" tipo ")"')
