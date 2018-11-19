@@ -25,6 +25,7 @@ class CEldaMaquinaVirtual(object):
 		self.memoriaFuncion = self.creaLista(self.infoFunciones['main'][0])
 		print(len(self.memoriaFuncion))
 		self.memoriaTemporales = self.creaLista(self.infoFunciones['main'][1])
+		self.memACrear = []
 		# self.pilaDePopsaAhacerTemps = []
 		self.pilaDePausaTemps = []
 		# self.pilaDePopsaAhacer = []
@@ -76,20 +77,12 @@ class CEldaMaquinaVirtual(object):
 		self.setValue(cuadruplo[3], cuadruplo[1][1])
 
 ##########################
-##########################
-##########################
 	def ENDPROC(self):
-		# pops = self.pilaDePopsaAhacer.pop()
 		pilaTemp = []
-		# while pops >= 0:
 		pilaTemp.append(self.pilaDePausa.pop())
-		# pops -= 1
 		self.memoriaFuncion = pilaTemp
-		# pops = self.pilaDePopsaAhacerTemps.pop()
 		pilaTemp = []
-		# while pops >= 0:
 		pilaTemp.append(self.pilaDePausaTemps.pop())
-		# pops -= 1
 		self.memoriaTemporales = pilaTemp
 
 	def opArit(self, cuadruplo):
@@ -118,17 +111,54 @@ class CEldaMaquinaVirtual(object):
 			arg3 = arg1 | arg2
 		self.setValue(cuadruplo[3], arg3)
 
+
+	def opAritIgual(self, cuadruplo):
+		arg1 = self.getValue(cuadruplo[3])
+		arg2 = self.getValue(cuadruplo[1])
+		op = cuadruplo[0]
+		if op == '=+':
+			arg3 = arg1 + arg2
+		elif op == '=-':
+			arg3 = arg1 - arg2
+		elif op == '=*':
+			arg3 = arg1 * arg2
+		elif op == '=<<':
+			arg3 = arg1 << arg2
+		elif op == '=>>':
+			arg3 = arg1 >> arg2
+		elif op == '=^':
+			arg3 = arg1 ^ arg2
+		elif op == '=&':
+			arg3 = arg1 & arg2
+		elif op == '=|':
+			arg3 = arg1 | arg2
+		self.setValue(cuadruplo[3], arg3)
+
+
 	def opWithDiv(self, cuadruplo):
 		arg1 = self.getValue(cuadruplo[1])
 		arg2 =  self.getValue(cuadruplo[2])
 		op = cuadruplo[0]
 		if(arg2 == 0):
 			print('ERROR division con 0')
-			quit()
+			sys.exit()
 		if op == '/':
 			arg3 = arg1 / arg2
 		elif op == '%':
 			arg3 = arg1 % arg2
+		self.setValue(cuadruplo[3], arg3)
+
+	def opWithDivIgual(self, cuadruplo):
+		arg1 = self.getValue(cuadruplo[3])
+		arg2 =  self.getValue(cuadruplo[1])
+		op = cuadruplo[0]
+		if(arg2 == 0):
+			print('ERROR division con 0')
+			sys.exit()
+		if op == '=/':
+			arg1 = arg1 / arg2
+		elif op == '=%':
+			arg1 = arg1 % arg2
 		self.setValue(cuadruplo[3], arg3)
 
 	def opLogic(self,cuadruplo):
@@ -154,28 +184,23 @@ class CEldaMaquinaVirtual(object):
 		self.setValue(cuadruplo[3], arg3)
 
 ##########################
-##########################
 	def ERA(self, cuadruplo):
 		self.pilaDePausa.append(self.memoriaFuncion)
 		self.pilaDePausaTemps.append(self.memoriaTemporales)
-		# self.pilaDePopsaAhacer.append(len(self.memoriaFuncion))
-		# self.pilaDePopsaAhacerTemps.append(len(self.memoriaTemporales))
+		self.memACrear = self.infoFunciones[cuadruplo[1]]
 
 ##########################
 	def GOSUB(self, cuadruplo):
+		self.currentCuad = cuadruplo[3]-1
 		self.memoriaFuncion = []
 		self.memoriaTemporales = []
-		self.memoriaFuncion = self.creaLista(cuadruplo[1][0])
-		self.memoriaTemporales = self.creaLista(cuadruplo[1][1])
-		self.currentCuad = cuadruplos[3]-1
+		self.memoriaFuncion = self.creaLista(self.memACrear[0])
+		self.memoriaTemporales = self.creaLista(self.memACrear[1])
 
-##########################
-##########################
 ##########################
 	def PARAM(self, cuadruplo):
 		self.setValue(cuadruplo[1], cuadruplo[3])
 
-##########################
 ##########################
 	def RETURN(self, cuadruplo):
 		pilaTemp = []
@@ -186,12 +211,12 @@ class CEldaMaquinaVirtual(object):
 		self.memoriaTemporales = pilaTemp
 		self.pilaRetorno.append(getValue(cuadruplo[2]))
 
-	# def WriteVar(self, cuadruplo):
-	# 	print(getValue(cuadruplo[1]))
+	def WriteVar(self, cuadruplo):
+		print(getValue(cuadruplo[1]))
 
-	# def ReadVar(self, cuadruplo):
-	# 	temp = input()
-	# 	print(setValue(cuadruplo[3], cuadruplo[1]))
+	def ReadVar(self, cuadruplo):
+		temp = input()
+		print(setValue(cuadruplo[3], cuadruplo[1]))
 
 	def creaLista(self, tam):
 		lista = [None] * tam
@@ -221,15 +246,19 @@ class CEldaMaquinaVirtual(object):
 			#     self.verify()
 			elif operacion == '+' or operacion == '-' or operacion == '*' or operacion == '<<' or operacion == '>>' or operacion == '^' or operacion == '&' or operacion == '|':
 				self.opArit(cuadruplo)
+			elif operacion == '+=' or operacion == '-=' or operacion == '*=' or operacion == '<<=' or operacion == '>>=' or operacion == '^=' or operacion == '&=' or operacion == '|=':
+				self.opAritIgual(cuadruplo)
 			elif operacion == '/' or operacion == '%':
 				self.opWithDiv(cuadruplo)
+			elif operacion == '/=' or operacion == '%=':
+				self.opWithDivIgual(cuadruplo)
 			elif  operacion == '&&' or operacion == '||' or operacion == '<' or operacion == '<=' or operacion == '>' or operacion == '>=' or operacion == '!=' or operacion == '==':
 				self.opLogic(cuadruplo)
 			elif operacion == '=':
 				self.asign(cuadruplo)
-			elif operacion == 'Write':
+			elif operacion == 'WRITE':
 				self.WriteVar(cuadruplo)
-			elif operacion == 'Read':
+			elif operacion == 'READ':
 				self.ReadVar(cuadruplo)
 			else:
 				print('ERROR, cuadruplo no acceptado: ')
