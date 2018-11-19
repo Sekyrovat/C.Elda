@@ -121,6 +121,7 @@ class CEldaParser(Parser):
 	   'comentarioInicial                                                   bloqueDeclaracionFunciones inicializaMain cuerpoFuncion',
 	   'comentarioInicial                                                                              inicializaMain cuerpoFuncion')
 	def programa(self, p):
+		self.tablaModulos.agregarTamanosMemoria('main', self.dirVariables - self.finVariablesGlobales, self.contadorTemporales)
 		self.generaCuadruplo('EXIT', None, None, None)
 		print()
 		print('Tabla de Constantes')
@@ -131,6 +132,8 @@ class CEldaParser(Parser):
 		print()
 		print('Tabla de Modulos')
 		print(self.tablaModulos)
+		print()
+		print(self.tablaModulos.creaReduccion())
 		print()
 		print('Cuadruplos')
 		print(self.cuadruplos)
@@ -230,6 +233,7 @@ class CEldaParser(Parser):
 	'''
 	@_('validaFuncion cuerpoFuncion newlines')
 	def declaracionFuncion(self, p):
+		self.tablaModulos.agregarTamanosMemoria(p.validaFuncion, self.dirVariables - self.finVariablesGlobales, self.contadorTemporales)
 		self.generaCuadruplo("ENDPROC", None, None, None)
 		self.contadorTemporales = 0
 		self.dirVariables = self.finVariablesGlobales
@@ -246,11 +250,11 @@ class CEldaParser(Parser):
 			if self.tablaModulos.checarFirma(p.setupFuncion[0], p.setupFuncion[1], p.declaracionArgumentos):
 				self.tablaModulos.agregarATabla(p.setupFuncion[0], p.setupFuncion[1], self.contadorCuadruplos, p.declaracionArgumentos, self.tablaVariablesActual)
 			else:
-				print('Funcion no coincide con el prototipo declarado', p.setupFuncion[0], p.lineno)
+				print('Funcion no coincide con el prototipo declarado o intento de redeclaración', p.setupFuncion[0], p.lineno)
 				sys.exit(1)
 		else:
 			self.tablaModulos.agregarATabla(p.setupFuncion[0], p.setupFuncion[1], self.contadorCuadruplos, p.declaracionArgumentos, self.tablaVariablesActual)
-			pass
+		return p.setupFuncion[0]
 
 	@_('FUNC SPACE tipo SPACE IDFUNCION',
 	   'FUNC SPACE tipo "[" tamano "]" SPACE IDFUNCION',
@@ -296,7 +300,7 @@ class CEldaParser(Parser):
 	def inicializaMain(self, p):
 		self.cuadruplos.rellena(0, self.contadorCuadruplos)
 		self.tablaVariablesActual = TablaVariables()
-		self.tablaModulos.tablaModulos['main'] = ('main', self.tablaVariablesActual)
+		self.tablaModulos.tablaModulos['main'] = ('main', 'void', self.contadorCuadruplos, [], self.tablaVariablesActual)
 
 	'''
 		Esta es una de las funciones mas importantes que tenemos, ya que se encarga del

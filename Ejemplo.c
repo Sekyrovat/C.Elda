@@ -48,6 +48,7 @@ main
 	int iParaSumar;
 	int iContJ;
 	char cDelSwitch;
+	int iArrEnorme[100];
 	cDelSwitch = 'p';
 
 	switch (cDelSwitch)

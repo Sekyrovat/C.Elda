@@ -90,12 +90,21 @@ class TablaModulos:
 	def agregarATabla(self, nombre, tipo, direccion, argumentos, tablaVariables):
 		self.tablaModulos[nombre] = (nombre, tipo, direccion, argumentos, tablaVariables)
 
+	def agregarTamanosMemoria(self, nombre, memoriaVariables, numeroTemporales):
+		self.tablaModulos[nombre] += (memoriaVariables, numeroTemporales)
+
 	def funcionExiste(self, nombre):
 		return nombre in self.tablaModulos
 
 	# Funcion para consegui la direccion de la variable que se nos indica.
 	def conseguirDireccion(self, nombre):
 		return self.tablaModulos[nombre][2]
+
+	def creaReduccion(self):
+		reduccion = {}
+		for key, data in self.tablaModulos.items():
+			reduccion[key] = data[5:7]
+		return reduccion
 
 	def __str__(self):
 		entradas = []
