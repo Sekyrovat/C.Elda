@@ -16,35 +16,48 @@ cuboTernario = {
 		'char' 	: 'int',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'char' : {
 		'int' 	: 'int',
 		'char' 	: 'char',
 		'bool' 	: 'char',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'bool' : {
 		'int' 	: 'int',
 		'char' 	: 'char',
 		'bool' 	: 'bool',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'float' : {
 		'int' : 'float',
 		'char' : 'float',
 		'bool' : 'float',
 		'float' : 'float',
-		'string' : 'error'
+		'string' : 'error',
+		'void' : 'error'
 	},
 	'string' : {
 		'int' : 'error',
 		'char' : 'error',
 		'bool' : 'error',
 		'float' : 'error',
-		'string' : 'string'
+		'string' : 'string',
+		'void' : 'error'
+	},
+	'void' : {
+		'int' : 'error',
+		'char' : 'error',
+		'bool' : 'error',
+		'float' : 'error',
+		'string' : 'error',
+		'void' : 'error'
 	}
 }
 
@@ -58,35 +71,40 @@ cubo1Operando = {
 		'char' 	: 'int',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'--' : {
 		'int' 	: 'int',
 		'char' 	: 'int',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'!' : {
 		'int' 	: 'int',
 		'char' 	: 'int',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'-' : {
 		'int' 	: 'int',
 		'char' 	: 'error',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	},
 	'~' : {
 		'int' 	: 'int',
 		'char' 	: 'int',
 		'bool' 	: 'int',
 		'float' : 'float',
-		'string': 'error'
+		'string': 'error',
+		'void' : 'error'
 	}
 }
 
@@ -102,35 +120,48 @@ cubo2Operandos = {
 			'char' 	: 'int',
 			'bool' 	: 'int',
 			'float' : 'float',
-			'string': 'error'
+			'string': 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' 	: 'int',
 			'char' 	: 'int',
 			'bool' 	: 'int',
 			'float' : 'float',
-			'string': 'error'
+			'string': 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' 	: 'int',
 			'char' 	: 'int',
 			'bool' 	: 'int',
 			'float' : 'float',
-			'string': 'error'
+			'string': 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'float',
 			'char' : 'float',
 			'bool' : 'float',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'string',
 			'char' : 'string',
 			'bool' : 'string',
 			'float' : 'string',
-			'string' : 'string'
+			'string' : 'string',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -140,35 +171,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'float',
 			'char' : 'float',
 			'bool' : 'float',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -178,35 +222,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'float',
 			'char' : 'float',
 			'bool' : 'float',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -216,35 +273,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'float',
 			'char' : 'float',
 			'bool' : 'float',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -254,35 +324,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -292,35 +375,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -330,14 +426,16 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
@@ -358,7 +456,16 @@ cubo2Operandos = {
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -368,33 +475,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'int',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'int',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'int',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'float',
 			'char' : 'float',
 			'bool' : 'float',
 			'float' : 'float',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'string',
+			'char' : 'string',
+			'bool' : 'string',
 			'float' : 'string',
-			'string' : 'string'
+			'string' : 'string',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -404,35 +526,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 
@@ -442,35 +577,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -480,35 +628,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -518,35 +679,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -556,35 +730,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -594,35 +781,48 @@ cubo2Operandos = {
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'bool',
 			'char' : 'bool',
 			'bool' : 'bool',
 			'float' : 'bool',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -632,35 +832,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -670,35 +883,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -708,35 +934,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -746,35 +985,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	},
 	
@@ -784,35 +1036,48 @@ cubo2Operandos = {
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'char' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'bool' : {
 			'int' : 'int',
 			'char' : 'int',
 			'bool' : 'int',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'float' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
 		},
 		'string' : {
 			'int' : 'error',
 			'char' : 'error',
 			'bool' : 'error',
 			'float' : 'error',
-			'string' : 'error'
+			'string' : 'error',
+			'void' : 'error'
+		},
+		'void' : {
+			'int' : 'error',
+			'char' : 'error',
+			'bool' : 'error',
+			'float' : 'error',
+			'string' : 'error',
+			'void' : 'error'
 		}
 	}
 }
