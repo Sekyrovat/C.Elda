@@ -31,9 +31,9 @@ class CEldaMaquinaVirtual(object):
 		self.returnCuad =[]
 
 	def getValue(self, tripleta):
-		#print('getValue')
-		#print(self.currentCuad)
-		#print(tripleta)
+		print('getValue')
+		print(self.currentCuad)
+		print(tripleta)
 		if tripleta[0] == 'v':
 			return tripleta[1]
 		elif tripleta[0] == 'd':
@@ -222,20 +222,19 @@ class CEldaMaquinaVirtual(object):
 		tipo = cuadruplo[3][3]
 		if tipo == 'int':
 			temp = int(float(temp))
-		elif tipo == 'float'
+		elif tipo == 'float':
 			temp = float(temp)
-		elif tipo == 'str'
+		elif tipo == 'str':
 			temp = str(temp)
-		elif tipo == 'char'
+		elif tipo == 'char':
 			temp = str(temp)[0]
-		elif tipo == 'bool'
+		elif tipo == 'bool':
 			if temp == 'TRUE' or temp == 'true' or temp >=1:
 				temp = 1
 			else:
 				temp = 0
 		self.setValue(cuadruplo[3][2], temp)
-			
-		# print(setValue(cuadruplo[3], cuadruplo[1]))
+		print(setValue(cuadruplo[3], cuadruplo[1]))
 
 	def creaLista(self, tam):
 		lista = [None] * tam
