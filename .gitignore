@@ -105,7 +105,8 @@ venv.bak/
 
 # parser debug file
 parser.out
+# C.Elda object files
+*.CEldaObj
 
 # sublime
 *.sublime-workspace
-out.json

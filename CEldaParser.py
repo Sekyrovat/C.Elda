@@ -47,7 +47,11 @@ class CEldaParser(Parser):
 		self.pilaAuxTernario = []
 		self.pilaAuxSwitch = []
 		self.pilaAuxContinue = []
+		self.pilaAuxContinueFor = []
+		self.pilaAuxContinueWhile = []
+		self.pilaAuxContinueDo = []
 		self.pilaAuxBreak = []
+		self.pilaAuxPost = []
 		self.contadorCuadruplos = 0
 		self.contadorTemporales = 0
 		self.nivelDeEspera = 0
@@ -98,7 +102,16 @@ class CEldaParser(Parser):
 		elif self.tablaVariablesActual != -1:
 			self.tablaVariablesActual.agregarATabla(nombre, tipo, self.dirVariables, dimensiones)
 
-	def consigueDirVariable(self, nombre, *dims): # dims parche temporal
+	def consigueVariable(self, nombre):
+		if self.tablaVariablesActual.variableExiste(nombre):
+			return self.tablaVariablesActual.tablaVariables[nombre]
+		elif self.tablaVariablesGlobales.variableExiste(nombre):
+			return self.tablaVariablesGlobales.tablaVariables[nombre]
+		else:
+			print ('variable no definida', nombre)
+			sys.exit(1)
+
+	def consigueDirVariable(self, nombre): # dims parche temporal
 		if self.tablaVariablesActual.variableExiste(nombre):
 			return self.tablaVariablesActual.conseguirDireccion(nombre)
 		elif self.tablaVariablesGlobales.variableExiste(nombre):
@@ -106,6 +119,11 @@ class CEldaParser(Parser):
 		else:
 			print ('variable no definida', nombre)
 			sys.exit(1)
+
+	def generaAccesoArreglo(self, tipo):
+		resultado = ('(t)', self.contadorTemporales, tipo)
+		self.contadorTemporales += 1
+		return resultado
 
 	##################################################################
 	##################################################################
@@ -263,17 +281,13 @@ class CEldaParser(Parser):
 			self.tablaModulos.agregarATabla(p.setupFuncion[0], p.setupFuncion[1], self.contadorCuadruplos, p.declaracionArgumentos, self.tablaVariablesActual)
 		return p.setupFuncion[0]
 
-	@_('FUNC SPACE tipo SPACE IDFUNCION',
-	   'FUNC SPACE tipo "[" tamano "]" SPACE IDFUNCION',
-	   'FUNC SPACE tipo "[" tamano "]" "[" tamano "]" SPACE IDFUNCION')
+	@_('FUNC SPACE tipo SPACE IDFUNCION')
 	def setupFuncion(self, p):
 		self.tablaVariablesActual = TablaVariables()
 		self.contadorLlamadas = 0
 		return (p.IDFUNCION, p.tipo)
 
-	@_('PROTO SPACE tipo SPACE IDFUNCION',
-	   'PROTO SPACE tipo "[" tamano "]" SPACE IDFUNCION',
-	   'PROTO SPACE tipo "[" tamano "]" "[" tamano "]" SPACE IDFUNCION')
+	@_('PROTO SPACE tipo SPACE IDFUNCION')
 	def setupPrototipo(self, p):
 		self.tablaVariablesActual = -1
 		if self.tablaModulos.funcionExiste(p.IDFUNCION):
@@ -336,9 +350,7 @@ class CEldaParser(Parser):
 	   'declaracionFloat',
 	   'declaracionInt',
 	   'declaracionChar',
-	   'declaracionString',
-	   'declaracionFila',
-	   'declaracionPila')
+	   'declaracionString')
 	def declaracionVariable(self, p):
 		return p[0]
 
@@ -509,30 +521,6 @@ class CEldaParser(Parser):
 	def tamano(self, p):
 		return self.tablaConstantes.getValor(p.INCONID)
 
-	@_('FILA SPACE declaracionFila2')
-	def declaracionFila(self, p):
-		pass
-
-	@_('BOOL SPACE FIBOID',
-	   'FLOAT SPACE FIFLID',
-	   'INT SPACE FIINID',
-	   'CHAR SPACE FICHID',
-	   'STRING SPACE FISTID')
-	def declaracionFila2(self, p):
-		pass
-
-	@_('PILA SPACE declaracionPila2')
-	def declaracionPila(self, p):
-		pass
-
-	@_('BOOL SPACE PIBOID',
-	   'FLOAT SPACE PIFLID',
-	   'INT SPACE PIINID',
-	   'CHAR SPACE PICHID',
-	   'STRING SPACE PISTID')
-	def declaracionPila2(self, p):
-		pass
-
 	'''
 		La regla siguiente es la base de la creacion de programas, ya que nos permite
 		desplazarnos a las expresiones que se usan en el desarrollo de codigo de dia a dia.
@@ -554,7 +542,11 @@ class CEldaParser(Parser):
 	   'estatutoContinue ";"',
 	   'estatutoBreak ";"')
 	def statement(self, p):
-		pass
+		self.contadorCuadruplos += len(self.pilaAuxPost)
+		if self.pilaAuxPost:
+			self.cuadruplos.agregaCuadruplos(self.pilaAuxPost)
+			self.pilaAuxPost.clear()
+
 
 	'''
 		Punto inicial del cual parte el if, lee la condicion, los corchetes,
@@ -721,6 +713,9 @@ class CEldaParser(Parser):
 	'''
 	@_('FOR SPACE "(" inicializacionFor ";" SPACE condicionFor ";" SPACE actualizacionFor ")" corchetes')
 	def cicloFor(self, p):
+		while self.pilaAuxContinueFor[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxContinueFor.pop(), self.contadorCuadruplos)
+		self.pilaAuxContinueFor.pop()
 		self.nivelDeEspera += 1
 		self.liberaEspera()
 		salidaDelFor = self.pilaSaltosPendientes.pop()
@@ -729,6 +724,8 @@ class CEldaParser(Parser):
 		while self.pilaAuxBreak[-1] != '/':
 			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
 		self.pilaAuxBreak.pop()
+		self.pilaAuxContinue.pop()
+
 
 	'''
 		La inicializacion en el for consta de una asignacion, ademas de meter en la pila 
@@ -738,6 +735,8 @@ class CEldaParser(Parser):
 	def inicializacionFor(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
 		self.pilaAuxBreak.append('/')
+		self.pilaAuxContinue.append('For')
+		self.pilaAuxContinueFor.append('/')
 		return p.asignacion
 
 	'''
@@ -769,11 +768,15 @@ class CEldaParser(Parser):
 		while self.pilaAuxBreak[-1] != '/':
 			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
 		self.pilaAuxBreak.pop()
+		self.pilaAuxContinue.pop()
+		self.pilaAuxContinueWhile.pop()
 
 	@_('WHILE')
 	def palabraWhile(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
 		self.pilaAuxBreak.append('/')
+		self.pilaAuxContinue.append('While')
+		self.pilaAuxContinueWhile.append(self.contadorCuadruplos)
 		return p.WHILE
 
 	@_('parentesis')
@@ -784,7 +787,7 @@ class CEldaParser(Parser):
 		self.generaCuadruplo('GoToF', p.parentesis, None, -1)
 		return p.parentesis
 
-	@_('palabraDO corchetes SPACE WHILE SPACE parentesis')
+	@_('palabraDO corchetes SPACE antesCondicion SPACE parentesis')
 	def cicloDo(self, p):
 		if p.parentesis[2] == 'string':
 			print('Error: type mismatch in line:', p.lineno, 'Do loops can\'t choose based on a string')
@@ -792,17 +795,26 @@ class CEldaParser(Parser):
 		while self.pilaAuxBreak[-1] != '/':
 			self.cuadruplos.rellena(self.pilaAuxBreak.pop(), self.contadorCuadruplos)
 		self.pilaAuxBreak.pop()
+		self.pilaAuxContinue.pop()
 		return p.parentesis
 
 	@_('DO')
 	def palabraDO(self, p):
 		self.pilaSaltosPendientes.append(self.contadorCuadruplos)
 		self.pilaAuxBreak.append('/')
+		self.pilaAuxContinue.append('Do')
+		self.pilaAuxContinueDo.append('/')
 		return p.DO
 
 	@_('NEWLINE tabs "{" newlines statements tabs "}"')
 	def corchetes(self, p):
 		pass
+
+	@_('WHILE')
+	def antesCondicion(self, p):
+		while self.pilaAuxContinueDo[-1] != '/':
+			self.cuadruplos.rellena(self.pilaAuxContinueDo.pop(), self.contadorCuadruplos)
+		self.pilaAuxContinueDo.pop()
 
 	@_('id ASSIGNMENT asignacion')
 	def asignacion(self, p):
@@ -1033,21 +1045,30 @@ class CEldaParser(Parser):
 	def unidad(self, p):
 		return p[0]
 
-	@_('id INCREMENT %prec POSTINCDEC',
-	   'id DECREMENT %prec POSTINCDEC')
+	@_('id INCREMENT %prec POSTINCDEC')
 	def unidad(self, p):
-		# logica para incremento post
+		print('El uso de incremento postfijo es altamnete desanimado. Linia:',p.lineno)
+		self.pilaAuxPost.append(('+', p.id, ('v', 1, 'int'), p.id))
+		return p[0]
+
+	@_('id DECREMENT %prec POSTINCDEC')
+	def unidad(self, p):
+		print('El uso de decremento postfijo es altamnete desanimado. Linia:',p.lineno)
+		self.pilaAuxPost.append(('-', p.id, ('v', 1, 'int'), p.id))
 		return p[0]
 
 	@_('"(" asignacion ")"')
 	def parentesis(self, p):
 		return p.asignacion
 
-	@_('idSencillo',
-	   'idArr',
+	@_('idSencillo')
+	def id(self, p):
+		return ('d',) + p.idSencillo
+
+	@_('idArr',
 	   'idMat')
 	def id(self, p):
-		return ('d',) + p[0]
+		return p[0]
 
 	@_('BOID')
 	def idSencillo(self, p):
@@ -1071,43 +1092,138 @@ class CEldaParser(Parser):
 
 	@_('BOARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.consigueDirVariable(p.BOARRID, p.asignacion[1]), 'bool')
+		if p.asignacion[2] == 'string':
+			print('Los accesos a un arreglo no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		arreglo = self.consigueVariable(p.BOARRID)
+		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
+		resultado = self.generaAccesoArreglo('bool')
+		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.BOARRID), 'int'), resultado)
+		return resultado
 
 	@_('FLARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.consigueDirVariable(p.FLARRID, p.asignacion[1]), 'float')
+		if p.asignacion[2] == 'string':
+			print('Los accesos a un arreglo no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		arreglo = self.consigueVariable(p.FLARRID)
+		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
+		resultado = self.generaAccesoArreglo('float')
+		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.FLARRID), 'int'), resultado)
+		return resultado
 
 	@_('INARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.consigueDirVariable(p.INARRID, p.asignacion[1]), 'int')
+		if p.asignacion[2] == 'string':
+			print('Los accesos a un arreglo no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		arreglo = self.consigueVariable(p.INARRID)
+		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
+		resultado = self.generaAccesoArreglo('int')
+		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.INARRID), 'int'), resultado)
+		return resultado
 
 	@_('CHARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.consigueDirVariable(p.CHARRID, p.asignacion[1]), 'char')
+		if p.asignacion[2] == 'string':
+			print('Los accesos a un arreglo no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		arreglo = self.consigueVariable(p.CHARRID)
+		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
+		resultado = self.generaAccesoArreglo('char')
+		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.CHARRID), 'int'), resultado)
+		return resultado
 
 	@_('STARRID "[" asignacion "]"')
 	def idArr(self, p):
-		return (self.consigueDirVariable(p.STARRID, p.asignacion[1]), 'string')
+		if p.asignacion[2] == 'string':
+			print('Los accesos a un arreglo no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		arreglo = self.consigueVariable(p.STARRID)
+		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
+		resultado = self.generaAccesoArreglo('string')
+		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.STARRID), 'int'), resultado)
+		return resultado
 
 	@_('BOMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.consigueDirVariable(p.BOMATID, p.asignacion0[1], p.asignacion1[1]), 'bool')
+		if p.asignacion0[2] == 'string' or p.asignacion1[2] == 'string':
+			print('Los accesos a una matriz no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		matriz = self.consigueVariable(p.BOMATID)
+		self.generaCuadruplo('Ver', p.asignacion0, 0, matriz[3].tamano)
+		temporal1 = self.generaTemporal('int')
+		self.generaCuadruplo('*', p.asignacion0, ('v', matriz[3].m, 'int'), temporal1)
+		self.generaCuadruplo('Ver', p.asignacion1, 0, matriz[3].next.tamano)
+		temporal2 = self.generaTemporal('int')
+		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
+		resultado = self.generaAccesoArreglo('bool')
+		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.BOMATID), 'int'), resultado)
+		return resultado
 
 	@_('FLMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.consigueDirVariable(p.FLMATID, p.asignacion0[1], p.asignacion1[1]), 'float')
+		if p.asignacion0[2] == 'string' or p.asignacion1[2] == 'string':
+			print('Los accesos a una matriz no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		matriz = self.consigueVariable(p.FLMATID)
+		self.generaCuadruplo('Ver', p.asignacion0, 0, matriz[3].tamano)
+		temporal1 = self.generaTemporal('int')
+		self.generaCuadruplo('*', p.asignacion0, ('v', matriz[3].m, 'int'), temporal1)
+		self.generaCuadruplo('Ver', p.asignacion1, 0, matriz[3].next.tamano)
+		temporal2 = self.generaTemporal('int')
+		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
+		resultado = self.generaAccesoArreglo('float')
+		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.FLMATID), 'int'), resultado)
+		return resultado
 
 	@_('INMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.consigueDirVariable(p.INMATID, p.asignacion0[1], p.asignacion1[1]), 'int')
+		if p.asignacion0[2] == 'string' or p.asignacion1[2] == 'string':
+			print('Los accesos a una matriz no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		matriz = self.consigueVariable(p.INMATID)
+		self.generaCuadruplo('Ver', p.asignacion0, 0, matriz[3].tamano)
+		temporal1 = self.generaTemporal('int')
+		self.generaCuadruplo('*', p.asignacion0, ('v', matriz[3].m, 'int'), temporal1)
+		self.generaCuadruplo('Ver', p.asignacion1, 0, matriz[3].next.tamano)
+		temporal2 = self.generaTemporal('int')
+		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
+		resultado = self.generaAccesoArreglo('int')
+		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.INMATID), 'int'), resultado)
+		return resultado
 
 	@_('CHMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.consigueDirVariable(p.CHMATID, p.asignacion0[1], p.asignacion1[1]), 'char')
+		if p.asignacion0[2] == 'string' or p.asignacion1[2] == 'string':
+			print('Los accesos a una matriz no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		matriz = self.consigueVariable(p.CHMATID)
+		self.generaCuadruplo('Ver', p.asignacion0, 0, matriz[3].tamano)
+		temporal1 = self.generaTemporal('int')
+		self.generaCuadruplo('*', p.asignacion0, ('v', matriz[3].m, 'int'), temporal)
+		self.generaCuadruplo('Ver', p.asignacion1, 0, matriz[3].next.tamano)
+		temporal2 = self.generaTemporal('int')
+		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
+		resultado = self.generaAccesoArreglo('char')
+		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.CHMATID), 'int'), resultado)
+		return resultado
 
 	@_('STMATID "[" asignacion "]" "[" asignacion "]"')
 	def idMat(self, p):
-		return (self.consigueDirVariable(p.STMATID, p.asignacion0[1], p.asignacion1[1]), 'string')
+		if p.asignacion0[2] == 'string' or p.asignacion1[2] == 'string':
+			print('Los accesos a una matriz no pueden ser string. Linia:', p.lineno)
+			sys.exit()
+		matriz = self.consigueVariable(p.STMATID)
+		self.generaCuadruplo('Ver', p.asignacion0, 0, matriz[3].tamano)
+		temporal1 = self.generaTemporal('int')
+		self.generaCuadruplo('*', p.asignacion0, ('v', matriz[3].m, 'int'), temporal1)
+		self.generaCuadruplo('Ver', p.asignacion1, 0, matriz[3].next.tamano)
+		temporal2 = self.generaTemporal('int')
+		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
+		resultado = self.generaAccesoArreglo('string')
+		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.STMATID), 'int'), resultado)
+		return resultado
 
 	@_('inicilizaLlamada "(" argumentos')
 	def llamadaFuncion(self, p):
@@ -1117,8 +1233,12 @@ class CEldaParser(Parser):
 
 	@_('READ "(" tipo ")"')
 	def llamadaFuncion(self, p):
-		if p.tipo :
-			pass
+		if p.tipo == 'void':
+			print('tipo void invalido para read. Linia', p.lineno)
+			sys.exit(1)
+		resultado = self.generaTemporal(p.tipo)
+		self.generaCuadruplo('READ', None, None, resultado)
+		return resultado
 
 	@_('WRITE "(" asignacion ")"')
 	def llamadaFuncion(self, p):
@@ -1158,7 +1278,16 @@ class CEldaParser(Parser):
 
 	@_('CONTINUE')
 	def estatutoContinue(self, p):
-		pass
+		tipoLoop = self.pilaAuxContinue[-1]
+		if tipoLoop == 'For':
+			self.pilaAuxContinueFor.append(self.contadorCuadruplos)
+			self.generaCuadruplo('GoTo', None, None, -1)
+		elif tipoLoop == 'While':
+			direccion = self.pilaAuxContinueWhile[-1]
+			self.generaCuadruplo('GoTo', None, None, direccion)
+		elif tipoLoop == 'Do':
+			self.pilaAuxContinueDo.append(self.contadorCuadruplos)
+			self.generaCuadruplo('GoTo', None, None, -1)
 
 	@_('BREAK')
 	def estatutoBreak(self, p):
@@ -1194,6 +1323,6 @@ if __name__ == '__main__':
 	if data:
 		result = parser.parse(lexer.tokenize(data))
 		encoder = CEldaEncoder()
-		with open('out.json', 'w') as outfile:
+		with open('out.CEldaObj', 'w') as outfile:
 			outfile.write(encoder.encode(result))
 			outfile.close()

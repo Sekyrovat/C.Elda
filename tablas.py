@@ -54,20 +54,8 @@ class TablaVariables:
 		return nombre in self.tablaVariables
 
 	# Funcion para consegui la direccion de la variable que se nos indica.
-	def conseguirDireccion(self, nombre, *accesos):
-		if len(accesos) == 0:
-			return self.tablaVariables[nombre][2]
-		else:
-			InfoDimension = self.tablaVariables[nombre][3]
-			desplazamiento = 0
-			for entrada in accesos:
-				# Debemos verficar que la entrada no sea mayor al tamanio.
-				if entrada >= InfoDimension.tamano:
-					pass # error index ouf of bounds
-				# Debemos obtener el desplazamiento adecuado para obtener la direccion adecuada.
-				desplazamiento += int(entrada) * InfoDimension.m
-				InfoDimension = InfoDimension.next
-			return self.tablaVariables[nombre][2] + desplazamiento
+	def conseguirDireccion(self, nombre):
+		return self.tablaVariables[nombre][2]
 
 	def __str__(self):
 		entradas = []
