@@ -151,11 +151,10 @@ class CEldaLexer(Lexer):
 
 	# Aqui se dan todas las tokens que seran utilizadas.
 	tokens = {TAB, SPACE, NEWLINE, ASSIGNMENT, TERNARIOPT1, TERNARIOPT2, OR, AND, BIT_OR, BIT_XOR, BIT_AND, EQ_NEQ,
-			  COMPARADOR, BITWISE_SHIFT, PLUS, MINUS, TIMES, DIV, MOD, INCREMENT, DECREMENT, 
-			  BOID, BOCONID, BOARRID, BOMATID, FLID, FLCONID, FLARRID, FLMATID, INID, INCONID, INARRID, INMATID,
-			  CHID, CHCONID, CHARRID, CHMATID, STID, STCONID, STARRID, STMATID, FIBOID, FIFLID, FIINID, FICHID, FISTID,
-			  PIBOID, PIFLID, PIINID, PICHID, PISTID, IDFUNCION, A_BOOLEAN, DECIMAL, ENTERO, A_CHAR, A_STRING, CONST,
-			  FUNC, PROTO, VOID, BOOL, FLOAT, INT, CHAR, STRING, FILA, PILA, MAIN, IF, ELSE, SWITCH, CASE, DEFAULT, DO,
+			  COMPARADOR, BITWISE_SHIFT, PLUS, MINUS, TIMES, DIV, MOD, INCREMENT, DECREMENT, BOID, BOCONID, BOARRID,
+			  BOMATID, FLID, FLCONID, FLARRID, FLMATID, INID, INCONID, INARRID, INMATID, CHID, CHCONID, CHARRID,
+			  CHMATID, STID, STCONID, STARRID, STMATID, IDFUNCION, A_BOOLEAN, DECIMAL, ENTERO, A_CHAR, A_STRING, CONST,
+			  FUNC, PROTO, VOID, BOOL, FLOAT, INT, CHAR, STRING, MAIN, IF, ELSE, SWITCH, CASE, DEFAULT, DO,
 			  WHILE, FOR, BREAK, CONTINUE, RETURN, READ, WRITE, COMENTARIO_SIMPLE, INICIO_COMENTARIO_BLOQUE,
 			  CONTENIDO_COMENTARIO, MATRICULA, FIN_COMENTARIO_BLOQUE}
 	# Aqui declaramos las literales que se usaran.
@@ -221,40 +220,30 @@ class CEldaLexer(Lexer):
 	BOCONID		= r'b[A-Z][A-Z_]*\b'
 	BOID		= r'b[A-Z]\w*\b'
 	A_BOOLEAN	= r'TRUE|FALSE'
-	FIBOID		= r'fiBool[A-Z]\w*\b'
-	PIBOID		= r'piBool[A-Z]\w*\b'
 	
 	FLMATID	= r'fMat[A-Z]\w*\b'
 	FLARRID	= r'fArr[A-Z]\w*\b'
 	FLCONID	= r'f[A-Z][A-Z_]*\b'
 	FLID	= r'f[A-Z]\w*\b'
 	DECIMAL	= r'\d+\.\d+'
-	FIFLID	= r'fiFloat[A-Z]\w*\b'
-	PIFLID	= r'piFloat[A-Z]\w*\b'
 	
 	INMATID	= r'iMat[A-Z]\w*\b'
 	INARRID	= r'iArr[A-Z]\w*\b'
 	INCONID	= r'i[A-Z][A-Z_]*\b'
 	INID	= r'i[A-Z]\w*\b'
 	ENTERO	= r'\d+'
-	FIINID	= r'fiInt[A-Z]\w*\b'
-	PIINID	= r'piInt[A-Z]\w*\b'
 	
 	CHMATID	= r'cMat[A-Z]\w*\b'
 	CHARRID	= r'cArr[A-Z]\w*\b'
 	CHCONID	= r'c[A-Z][A-Z_]*\b'
 	CHID	= r'c[A-Z]\w*\b'
 	A_CHAR	= r'\'.\''
-	FICHID	= r'fiChar[A-Z]\w*\b'
-	PICHID	= r'piChar[A-Z]\w*\b'
 	
 	STMATID		= r'sMat[A-Z]\w*\b'
 	STARRID		= r'sArr[A-Z]\w*\b'
 	STCONID		= r's[A-Z][A-Z_]*\b'
 	STID		= r's[A-Z]\w*\b'
 	A_STRING	= r'"[^"\\]*(?:\\.[^"\\]*)*"'
-	FISTID		= r'fiString[A-Z]\w*\b'
-	PISTID		= r'piString[A-Z]\w*\b'
 
 	'''
 		Expresion regular para procesar el ID de la funcion.
@@ -272,8 +261,6 @@ class CEldaLexer(Lexer):
 	IDFUNCION["int"]		= INT
 	IDFUNCION["char"]		= CHAR
 	IDFUNCION["string"]		= STRING
-	IDFUNCION["fila"]		= FILA
-	IDFUNCION["pila"]		= PILA
 	IDFUNCION["main"]		= MAIN
 	IDFUNCION["if"]			= IF
 	IDFUNCION["else"]		= ELSE
