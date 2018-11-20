@@ -8,7 +8,7 @@ import sys
 import json
 from CEldaEncoder import hinted_tuple_hook
 
-with open('out.json', 'r') as json_file:
+with open('out.CEldaObj', 'r') as json_file:
 	content = json_file.read()
 	data = json.loads(content, object_hook=hinted_tuple_hook)
 	json_file.close()
@@ -187,7 +187,7 @@ class CEldaMaquinaVirtual(object):
 		self.memoriaLlamada = self.creaLista(self.memACrear[0])
 
 	def GOSUB(self, cuadruplo):
-		self.returnCuad.append(self.currentCuad + 1)
+		self.returnCuad.append(self.currentCuad)
 		self.currentCuad = cuadruplo[1] - 1
 		self.dirRetorno.append(cuadruplo[3])
 		self.memoriaFuncion = self.memoriaLlamada
