@@ -43,8 +43,21 @@ class CEldaMaquinaVirtual(object):
 				print("Variable no inicializada.")
 				sys.exit(1)
 			return valor
-		else:
+		elif tripleta[0] == 't':
 			return self.memoriaTemporales[tripleta[1]]
+		elif tripleta[0] == '(t)':
+			direccion = self.memoriaTemporales[tripleta[1]]
+			if direccion < self.frontera:
+				valor = self.memoriaGlobales[direccion]
+			else:
+				direccion -= self.frontera
+				valor = self.memoriaFuncion[direccion]
+			if valor is None:
+				print("Variable no inicializada.")
+				sys.exit(1)
+			return valor
+		else:
+			print('Tripleta mal formada')
 	
 
 	def setValue(self, tripleta, valor):
@@ -54,8 +67,18 @@ class CEldaMaquinaVirtual(object):
 			else:
 				direccion = tripleta[1] - self.frontera
 				self.memoriaFuncion[direccion] = valor
-		else:
+		elif tripleta[0] == 't':
 			self.memoriaTemporales[tripleta[1]] = valor
+		elif tripleta[0] == '(t)':
+			direccion = self.memoriaTemporales[tripleta[1]]
+			if direccion < self.frontera:
+				self.memoriaGlobales[direccion] = valor
+			else:
+				direccion -= self.frontera
+				self.memoriaFuncion[direccion] = valor
+		else:
+			print('Tripleta mal formada')
+
 
 	def setParam(self, valor, direccion):
 		direccion -= self.frontera
@@ -73,7 +96,7 @@ class CEldaMaquinaVirtual(object):
 			self.currentCuad = cuadruplo[3] - 1
 
 	def asign(self, cuadruplo):
-		self.setValue(cuadruplo[3], cuadruplo[1][1])
+		self.setValue(cuadruplo[3], self.getValue(cuadruplo[1]))
 
 	def opArit(self, cuadruplo):
 		arg1 = self.getValue(cuadruplo[1])
@@ -106,21 +129,21 @@ class CEldaMaquinaVirtual(object):
 		arg1 = self.getValue(cuadruplo[3])
 		arg2 = self.getValue(cuadruplo[1])
 		op = cuadruplo[0]
-		if op == '=+':
+		if op == '+=':
 			arg3 = arg1 + arg2
-		elif op == '=-':
+		elif op == '-=':
 			arg3 = arg1 - arg2
-		elif op == '=*':
+		elif op == '*=':
 			arg3 = arg1 * arg2
-		elif op == '=<<':
+		elif op == '<<=':
 			arg3 = arg1 << arg2
-		elif op == '=>>':
+		elif op == '>>=':
 			arg3 = arg1 >> arg2
-		elif op == '=^':
+		elif op == '^=':
 			arg3 = arg1 ^ arg2
-		elif op == '=&':
+		elif op == '&=':
 			arg3 = arg1 & arg2
-		elif op == '=|':
+		elif op == '|=':
 			arg3 = arg1 | arg2
 		self.setValue(cuadruplo[3], arg3)
 
@@ -224,12 +247,19 @@ class CEldaMaquinaVirtual(object):
 				temp = 0
 		self.setValue(cuadruplo[3], temp)
 
-	def ver(self, cuadruplo):
+	def Ver(self, cuadruplo):
 		######################################
 		#####################################
 		######################## aqui #########
 		####################################
 		#################################
+		pass
+
+	def setAcceso(self, cuadruplo):
+		arg1 = self.getValue(cuadruplo[1])
+		arg2 = self.getValue(cuadruplo[2])
+		valor = arg1 + arg2
+		self.memoriaTemporales[cuadruplo[3][1]] = valor
 
 	def creaLista(self, tam):
 		lista = [None] * tam
@@ -255,8 +285,10 @@ class CEldaMaquinaVirtual(object):
 				self.PARAM(cuadruplo)
 			elif operacion == 'RETURN':
 				self.RETURN(cuadruplo)
-			elif operacion == 'ver':
-				self.ver()
+			elif operacion == 'Ver':
+				self.Ver(cuadruplo)
+			elif operacion == '+d':
+				self.setAcceso(cuadruplo)
 			elif operacion == '+' or operacion == '-' or operacion == '*' or operacion == '<<' or operacion == '>>' or operacion == '^' or operacion == '&' or operacion == '|':
 				self.opArit(cuadruplo)
 			elif operacion == '+=' or operacion == '-=' or operacion == '*=' or operacion == '<<=' or operacion == '>>=' or operacion == '^=' or operacion == '&=' or operacion == '|=':

@@ -32,6 +32,16 @@ func int fibonacci(int iNumeroFibonacci)
 
 func int return3()
 {
+	int iArrPrueba[10];
+	int iContador;
+	for (iContador = 0; iContador < 10; ++iContador)
+	{
+		iArrPrueba[iContador] = 10 * iContador;
+	}
+	for (iContador = 0; iContador < 10; ++iContador)
+	{
+		write(iArrPrueba[iContador]);
+	}
 	return 3;
 }
 

@@ -1098,7 +1098,7 @@ class CEldaParser(Parser):
 		arreglo = self.consigueVariable(p.BOARRID)
 		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
 		resultado = self.generaAccesoArreglo('bool')
-		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.BOARRID), 'int'), resultado)
+		self.generaCuadruplo('+d', p.asignacion, ('v', self.consigueDirVariable(p.BOARRID), 'int'), resultado)
 		return resultado
 
 	@_('FLARRID "[" asignacion "]"')
@@ -1109,7 +1109,7 @@ class CEldaParser(Parser):
 		arreglo = self.consigueVariable(p.FLARRID)
 		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
 		resultado = self.generaAccesoArreglo('float')
-		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.FLARRID), 'int'), resultado)
+		self.generaCuadruplo('+d', p.asignacion, ('v', self.consigueDirVariable(p.FLARRID), 'int'), resultado)
 		return resultado
 
 	@_('INARRID "[" asignacion "]"')
@@ -1120,7 +1120,7 @@ class CEldaParser(Parser):
 		arreglo = self.consigueVariable(p.INARRID)
 		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
 		resultado = self.generaAccesoArreglo('int')
-		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.INARRID), 'int'), resultado)
+		self.generaCuadruplo('+d', p.asignacion, ('v', self.consigueDirVariable(p.INARRID), 'int'), resultado)
 		return resultado
 
 	@_('CHARRID "[" asignacion "]"')
@@ -1131,7 +1131,7 @@ class CEldaParser(Parser):
 		arreglo = self.consigueVariable(p.CHARRID)
 		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
 		resultado = self.generaAccesoArreglo('char')
-		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.CHARRID), 'int'), resultado)
+		self.generaCuadruplo('+d', p.asignacion, ('v', self.consigueDirVariable(p.CHARRID), 'int'), resultado)
 		return resultado
 
 	@_('STARRID "[" asignacion "]"')
@@ -1142,7 +1142,7 @@ class CEldaParser(Parser):
 		arreglo = self.consigueVariable(p.STARRID)
 		self.generaCuadruplo('Ver', p.asignacion, 0, arreglo[3].tamano)
 		resultado = self.generaAccesoArreglo('string')
-		self.generaCuadruplo('+', p.asignacion, ('v', self.consigueDirVariable(p.STARRID), 'int'), resultado)
+		self.generaCuadruplo('+d', p.asignacion, ('v', self.consigueDirVariable(p.STARRID), 'int'), resultado)
 		return resultado
 
 	@_('BOMATID "[" asignacion "]" "[" asignacion "]"')
@@ -1158,7 +1158,7 @@ class CEldaParser(Parser):
 		temporal2 = self.generaTemporal('int')
 		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
 		resultado = self.generaAccesoArreglo('bool')
-		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.BOMATID), 'int'), resultado)
+		self.generaCuadruplo('+d', temporal2, ('v', self.consigueDirVariable(p.BOMATID), 'int'), resultado)
 		return resultado
 
 	@_('FLMATID "[" asignacion "]" "[" asignacion "]"')
@@ -1174,7 +1174,7 @@ class CEldaParser(Parser):
 		temporal2 = self.generaTemporal('int')
 		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
 		resultado = self.generaAccesoArreglo('float')
-		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.FLMATID), 'int'), resultado)
+		self.generaCuadruplo('+d', temporal2, ('v', self.consigueDirVariable(p.FLMATID), 'int'), resultado)
 		return resultado
 
 	@_('INMATID "[" asignacion "]" "[" asignacion "]"')
@@ -1190,7 +1190,7 @@ class CEldaParser(Parser):
 		temporal2 = self.generaTemporal('int')
 		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
 		resultado = self.generaAccesoArreglo('int')
-		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.INMATID), 'int'), resultado)
+		self.generaCuadruplo('+d', temporal2, ('v', self.consigueDirVariable(p.INMATID), 'int'), resultado)
 		return resultado
 
 	@_('CHMATID "[" asignacion "]" "[" asignacion "]"')
@@ -1206,7 +1206,7 @@ class CEldaParser(Parser):
 		temporal2 = self.generaTemporal('int')
 		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
 		resultado = self.generaAccesoArreglo('char')
-		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.CHMATID), 'int'), resultado)
+		self.generaCuadruplo('+d', temporal2, ('v', self.consigueDirVariable(p.CHMATID), 'int'), resultado)
 		return resultado
 
 	@_('STMATID "[" asignacion "]" "[" asignacion "]"')
@@ -1222,7 +1222,7 @@ class CEldaParser(Parser):
 		temporal2 = self.generaTemporal('int')
 		self.generaCuadruplo('+', temporal1, p.asignacion1, temporal2)
 		resultado = self.generaAccesoArreglo('string')
-		self.generaCuadruplo('+', temporal2, ('v', self.consigueDirVariable(p.STMATID), 'int'), resultado)
+		self.generaCuadruplo('+d', temporal2, ('v', self.consigueDirVariable(p.STMATID), 'int'), resultado)
 		return resultado
 
 	@_('inicilizaLlamada "(" argumentos')
