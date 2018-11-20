@@ -39,6 +39,9 @@ class Cuadruplos(object):
 		self.cuadruplos.extend(espera)
 		return len(espera)
 
+	def agregaCuadruplos(self, lista):
+		self.cuadruplos.extend(lista)
+
 	def __str__(self):
 		return '\n'.join(map(toStringHelper, map(str, enumerate(self.cuadruplos))))
 
