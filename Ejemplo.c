@@ -52,6 +52,23 @@ main
 	cDelSwitch = 'p';
 
 	iParaSumar = 8;
+	iParaSumar = 4 + iParaSumar--;
+
+	do
+	{
+		continue;
+		for (iParaSumar = 0; iParaSumar < 5; ++iParaSumar)
+		{
+			continue;
+			for (iParaSumar = 0; iParaSumar < 10; ++iParaSumar)
+			{
+				cDelSwitch += 1;
+				continue;
+				break;
+			}
+		}
+	} while (1 - 1);
+
 
 	switch (cDelSwitch)
 	{
@@ -131,10 +148,13 @@ main
 	while (iQueHaceAlgo)
 	{
 		--iQueHaceAlgo;
+		continue;
 	}
 
 	do
 	{
 		++iQueHaceAlgo;
 	} while (iQueHaceAlgo < 15);
+
+	write(bMatMuyLoco[1][1] * bMatMuyLoco[0][0]);
 }
