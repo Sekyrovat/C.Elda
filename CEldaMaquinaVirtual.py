@@ -5,17 +5,10 @@
 # Héctor Hernández Morales A00816446
 
 import sys
-import json
-from CEldaEncoder import hinted_tuple_hook
-
-with open('out.CEldaObj', 'r') as json_file:
-	content = json_file.read()
-	data = json.loads(content, object_hook=hinted_tuple_hook)
-	json_file.close()
 
 class CEldaMaquinaVirtual(object):
 	"""docstring for CEldaMaquinaVirtual"""
-	def __init__(self):
+	def __init__(self, data):
 		self.frontera = data['frontera']
 		self.infoFunciones = data['funciones']
 		self.cuadruplos = data['cuadruplos']
@@ -248,12 +241,10 @@ class CEldaMaquinaVirtual(object):
 		self.setValue(cuadruplo[3], temp)
 
 	def Ver(self, cuadruplo):
-		######################################
-		#####################################
-		######################## aqui #########
-		####################################
-		#################################
-		pass
+		valor = self.getValue(cuadruplo[1])
+		if valor < cuadruplo[2] or valor >= cuadruplo[3]:
+			print('Index out of bound exception.')
+			sys.exit(1)
 
 	def setAcceso(self, cuadruplo):
 		arg1 = self.getValue(cuadruplo[1])
@@ -311,5 +302,12 @@ class CEldaMaquinaVirtual(object):
 			self.currentCuad = self.currentCuad + 1
 
 if __name__ == '__main__':
-	maquina = CEldaMaquinaVirtual()
+	import json
+	from CEldaEncoder import hinted_tuple_hook
+
+	with open('out.CEldaObj', 'r') as json_file:
+		content = json_file.read()
+		data = json.loads(content, object_hook=hinted_tuple_hook)
+		json_file.close()
+	maquina = CEldaMaquinaVirtual(data)
 	maquina.run()

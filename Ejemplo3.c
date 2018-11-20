@@ -55,5 +55,4 @@ main
 	write("some text");
 	write(return3());
 	write(fibonacci(read(int)));
-
 }
