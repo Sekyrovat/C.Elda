@@ -31,9 +31,6 @@ class CEldaMaquinaVirtual(object):
 		self.returnCuad =[]
 
 	def getValue(self, tripleta):
-		print('getValue')
-		print(self.currentCuad)
-		print(tripleta)
 		if tripleta[0] == 'v':
 			return tripleta[1]
 		elif tripleta[0] == 'd':
@@ -56,7 +53,6 @@ class CEldaMaquinaVirtual(object):
 				self.memoriaGlobales[tripleta[1]] = valor
 			else:
 				direccion = tripleta[1] - self.frontera
-				#print(direccion)
 				self.memoriaFuncion[direccion] = valor
 		else:
 			self.memoriaTemporales[tripleta[1]] = valor
@@ -80,9 +76,6 @@ class CEldaMaquinaVirtual(object):
 		self.setValue(cuadruplo[3], cuadruplo[1][1])
 
 	def opArit(self, cuadruplo):
-		# print('opArit')
-		# print(cuadruplo)
-		# print(self.currentCuad)
 		arg1 = self.getValue(cuadruplo[1])
 		if cuadruplo[2] is None:
 			arg2 = arg1
@@ -194,8 +187,6 @@ class CEldaMaquinaVirtual(object):
 		self.memoriaTemporales = self.creaLista(self.memACrear[1])
 
 	def PARAM(self, cuadruplo):
-		# print(cuadruplo)
-		# print(self.currentCuad)
 		self.setParam(self.getValue(cuadruplo[1]), cuadruplo[3])
 
 ##########################
@@ -206,8 +197,6 @@ class CEldaMaquinaVirtual(object):
 		self.currentCuad = self.returnCuad.pop()
 
 	def RETURN(self, cuadruplo):
-		print(cuadruplo)
-		#print(self.pilaDePausaTemps)
 		valor = self.getValue(cuadruplo[1])
 		self.memoriaFuncion = self.pilaDePausa.pop()
 		self.memoriaTemporales = self.pilaDePausaTemps.pop()
@@ -219,7 +208,7 @@ class CEldaMaquinaVirtual(object):
 
 	def ReadVar(self, cuadruplo):
 		temp = input()
-		tipo = cuadruplo[3][3]
+		tipo = cuadruplo[3][2]
 		if tipo == 'int':
 			temp = int(float(temp))
 		elif tipo == 'float':
@@ -229,12 +218,18 @@ class CEldaMaquinaVirtual(object):
 		elif tipo == 'char':
 			temp = str(temp)[0]
 		elif tipo == 'bool':
-			if temp == 'TRUE' or temp == 'true' or temp >=1:
+			if temp == 'TRUE' or temp == 'true' or temp == 'True' or temp >= 1:
 				temp = 1
 			else:
 				temp = 0
-		self.setValue(cuadruplo[3][2], temp)
-		print(setValue(cuadruplo[3], cuadruplo[1]))
+		self.setValue(cuadruplo[3], temp)
+
+	def ver(self, cuadruplo):
+		######################################
+		#####################################
+		######################## aqui #########
+		####################################
+		#################################
 
 	def creaLista(self, tam):
 		lista = [None] * tam
@@ -260,8 +255,8 @@ class CEldaMaquinaVirtual(object):
 				self.PARAM(cuadruplo)
 			elif operacion == 'RETURN':
 				self.RETURN(cuadruplo)
-			# elif operacion == 'verify':
-			#     self.verify()
+			elif operacion == 'ver':
+				self.ver()
 			elif operacion == '+' or operacion == '-' or operacion == '*' or operacion == '<<' or operacion == '>>' or operacion == '^' or operacion == '&' or operacion == '|':
 				self.opArit(cuadruplo)
 			elif operacion == '+=' or operacion == '-=' or operacion == '*=' or operacion == '<<=' or operacion == '>>=' or operacion == '^=' or operacion == '&=' or operacion == '|=':
@@ -282,8 +277,6 @@ class CEldaMaquinaVirtual(object):
 				print('ERROR, cuadruplo no acceptado: ')
 				print(cuadruplo)
 			self.currentCuad = self.currentCuad + 1
-				# print(self.currentCuad)
-			#print(cuadruplo)
 
 if __name__ == '__main__':
 	maquina = CEldaMaquinaVirtual()

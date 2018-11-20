@@ -44,6 +44,6 @@ main
 	write(19);
 	write("some text");
 	write(return3());
-	write(fibonacci(5));
+	write(fibonacci(read(int)));
 
 }
